@@ -1,0 +1,17 @@
+小u管家接口文档地址：
+http://agent.shequnguanjia.com/main.aspx
+账户:jingli123
+密码:123456
+由创建群／拉人文档地址：
+http://schoolv2.17vsell.com/v1/Help
+测试服务器：
+域名：mt.gemii.cc
+ip：54.223.198.95
+用户名：ubuntu
+秘钥
+redis：
+ip:54.223.198.95 
+端口：8081 
+密码：gemii@123.cc
+mysql:
+gemii.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn

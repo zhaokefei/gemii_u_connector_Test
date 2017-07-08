@@ -1,0 +1,30 @@
+<VirtualHost 172.31.6.255:8084>
+    ServerName 172.31.6.255:8084
+    DocumentRoot /var/www/u-connector
+
+    Alias /media/ /var/www/u-connector/static/
+    Alias /static/ /var/www/u-connector/static/
+
+    <Directory /var/www/u-connector>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    <Directory /var/www/u-connector/static>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+    WSGIScriptAlias / /var/www/u-connector/UConnector/wsgi.py
+
+
+    <Directory /var/www/u_connector/UConnector>
+    <Files wsgi.py>
+        Order deny,allow
+        Allow from all
+    </Files>
+    </Directory>
+
+    WSGIDaemonProcess u-connector user=ubuntu group=ubuntu python-path=/home/ubuntu/.virtualenvs/u-connector/bin:/home/ubuntu/.virtualenvs/u-connector/lib/python2.7/site-packages
+    WSGIProcessGroup u-connector
+</VirtualHost>
