@@ -9,27 +9,27 @@ import logging
 from django.views.generic import View
 
 from django.http.response import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView
 
 from connector import apis
-from connector.utils.mysql_db import MysqlDB
-from connector.utils.db_config import DBCONF,print_file
-from connector.utils import commont_tool
-from .models import ChatMessageModel, URobotModel, ChatRoomModel, \
+from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
     IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask
-from .serializers import ChatMessageSerializer, URobotSerializer, \
+from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii
+from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
+from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
     DropOutChatRoomSerializer, MemberInfoSerializer
 
-from connector.utils.db_config import CALLBACK_JAVA
+from django.conf import settings
 
 from legacy_system.publish import pub_message,intochatroom, rece_msg
 # Create your views here.
 
 django_log = logging.getLogger('django')
+message_log = logging.getLogger('message')
+member_log = logging.getLogger('member')
 
 class UMessageView(GenericAPIView, mixins.CreateModelMixin):
     """
@@ -67,17 +67,6 @@ class ChatRoomView(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 self.perform_create(serializer)
-            # #更新U-roomid
-            # u_roomid = data['vcChatRoomSerialNo']
-            # vcName = data['vcName']
-            # mysql_wechat_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-            # mysql_wechat4bot2hye = MysqlDB(DBCONF.wechat4bot2hye_config)
-            # try:
-            #     mysql_wechat_gemii.update('WeChatRoomInfo', {'U_RoomID': u_roomid}, {'RoomName': vcName})
-            #     mysql_wechat4bot2hye.update('WeChatRoomInfo', {'U_RoomID': u_roomid}, {'RoomName': vcName})
-            # finally:
-            #     mysql_wechat_gemii.close()
-            #     mysql_wechat4bot2hye.close()
         return HttpResponse('SUCCESS')
 
 class ChatMessageListView(viewsets.ModelViewSet):
@@ -114,16 +103,87 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
     serializer_class = IntoChatRoomSerializer
 
     def batch_create(self, request, datas=None, *args, **kwargs):
+        member_log.info('成员入群回调')
         for data in datas:
-            try:
-                rsp = apis.receive_member_info(str(data['vcChatRoomSerialNo']))
-                django_log.info('room-id:%s' % data['vcChatRoomSerialNo'])
-                django_log.info('rsp:%s' % rsp)
-            except Exception,e:
-                django_log.info(e)
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 self.perform_create(serializer)
+        self.handle_member_room(datas)
+
+    def handle_member_room(self, members):
+        """
+        参数 说明
+           vcChatRoomSerialNo 群编号
+            vcWxUserSerialNo 用户编号
+            vcFatherWxUserSerialNo 邀请人用户编号
+            vcNickName 用户昵称
+            vcBase64NickName Base64编码后的用户昵称
+            vcHeadImages 用户头像
+            nJoinChatRoomType 入群方式 10扫码 11拉入 12未知
+
+        :param members:
+        :return:
+        """
+        member_log.info('开始插入roommember数据（%s）' % len(members))
+        for member in members:
+            u_roomid = member['vcChatRoomSerialNo']
+            u_userid = member['vcWxUserSerialNo']
+            try:
+                chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
+                serNum = chatroom_record.serNum
+            except ChatRoomModel.DoesNotExist:
+                serNum = 'B'
+
+            if serNum == 'A':
+                db_gemii_choice = 'gemii'
+                db_wyeth_choice = 'wyeth'
+            # TODo elif serNum=='B'
+            else:
+                db_gemii_choice = 'gemii_b'
+                db_wyeth_choice = 'wyeth_b'
+
+            try:
+                room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=u_roomid)
+            except WeChatRoomInfoGemii.DoesNotExist:
+                room_record = ""
+
+            if not room_record:
+                member_log.info('未匹配u_userid(%s)入的群WeChatRoomInfo[%s]数据' % (
+                str(member['vcWxUserSerialNo']), str(member['vcChatRoomSerialNo'])))
+                continue
+            else:
+                try:
+                    user_record = UserInfo.objects.get(U_UserID=u_userid, MatchGroup=room_record.RoomID)
+                except UserInfo.DoesNotExist:
+                    user_record = ""
+
+                roommerber_data = {
+                    'RoomID': room_record.RoomID,
+                    'NickName': member['vcNickName'],
+                    'U_UserID': member['vcWxUserSerialNo'],
+                    'member_icon': member['vcHeadImages'],
+                    'DisplayName': member['vcNickName'],
+                }
+
+                room_member = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid)
+                if room_member.exists():
+                    member_log.info('roommember数据已存在（RoomID：%s,U_UserID:%s）' % (
+                    str(room_record.RoomID), str(u_userid)))
+                    continue
+
+                if user_record:
+                    roommerber_data['open_id'] = user_record.Openid
+                    roommerber_data['UserID'] = user_record.id
+
+                gemii_data = roommerber_data
+
+                gemii_data['MemberID'] = u_userid
+                gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+                WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
+                WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
+                member_log.info('成功插入成员数据--u_userid(%s)入的群WeChatRoomInfo[%s]' % (str(u_userid), str(u_roomid)))
+
 
     def post(self, request, *args, **kwargs):
         datas = json.loads(request.data['strContext'])['Data']
@@ -132,12 +192,63 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
         return HttpResponse('SUCCESS')
 
 
-class DropOutChatRoomCreateView(UMessageView):
+class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
     """
     成员退群信息
+    vcChatRoomSerialNo 群编号
+    vcWxUserSerialNo 用户编号
+    dtCreateDate 退群时间
     """
     queryset = DropOutChatRoom.objects.all()
     serializer_class = DropOutChatRoomSerializer
+
+    def batch_create(self, request, datas=None, *args, **kwargs):
+        member_log.info('成员退群回调')
+        member_log.info('处理退群成员数量 %s' %(str(len(datas))))
+
+        count = 0
+        for data in datas:
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                self.perform_create(serializer)
+
+            u_roomid = data['vcChatRoomSerialNo']
+            u_userid= data['vcWxUserSerialNo']
+            try:
+                chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
+                serNum = chatroom_record.serNum
+            except ChatRoomModel.DoesNotExist:
+                serNum = 'B'
+
+            if serNum == 'A':
+                db_gemii_choice = 'gemii'
+                db_wyeth_choice = 'wyeth'
+            # TODo elif serNum=='B'
+            else:
+                db_gemii_choice = 'gemii_b'
+                db_wyeth_choice = 'wyeth_b'
+
+            try:
+                room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=u_roomid)
+            except WeChatRoomInfoGemii.DoesNotExist:
+                room_record = ''
+
+            if not room_record:
+                member_log.info('未匹配u_userid(%s)入的群WeChatRoomInfo[%s]数据' % (
+                str(data['vcWxUserSerialNo']), str(data['vcChatRoomSerialNo'])))
+                continue
+            else:
+                WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid).delete()
+                WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid).delete()
+            count += 1
+
+        member_log.info('成功处理退群成员（%s）个' % count)
+
+    def post(self, request, *args, **kwargs):
+        datas = json.loads(request.data['strContext'])['Data']
+        if datas:
+            self.batch_create(request, datas=datas, *args, **kwargs)
+        return HttpResponse('SUCCESS')
 
 
 class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
@@ -160,7 +271,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
                 # chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
                 # chatroom.member.add(serializer.instance)
         django_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
-        self.handle_member_room(members,chatroom_id)
+        self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
 
     def post(self, request, *args, **kwargs):
@@ -190,7 +301,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         chatroom_id = data['vcChatRoomSerialNo']
         return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
-    def handle_member_room(self, members,chatroom_id):
+    def handle_member_room(self, members, chatroom_id):
         """
         参数	说明
             vcChatRoomSerialNo	群编号
@@ -207,44 +318,59 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         :param members:
         :return:
         """
-        mysql_wechat_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-        mysql_wechat4bot2hye = MysqlDB(DBCONF.wechat4bot2hye_config)
-        roominfo_raws = mysql_wechat_gemii.select('WeChatRoomInfo', where_dict={'U_RoomID': chatroom_id})
-        if not roominfo_raws:
+        try:
+            chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+            serNum = chatroom_record.serNum
+        except ChatRoomModel.DoesNotExist:
+            serNum = 'B'
+
+        if serNum == 'A':
+            db_gemii_choice = 'gemii'
+            db_wyeth_choice = 'wyeth'
+        # TODo elif serNum=='B'
+        else:
+            db_gemii_choice = 'gemii_b'
+            db_wyeth_choice = 'wyeth_b'
+
+        try:
+            roominfo_raw = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=chatroom_id)
+        except WeChatRoomInfoGemii.DoesNotExist:
             django_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(chatroom_id)))
             return None
-        else:
-            roominfo_raw = roominfo_raws[0]
         django_log.info('开始更新U_RoomID：%s的成员信息' % (str(chatroom_id)))
-        try:
-            mysql_wechat_gemii.delete('WeChatRoomMemberInfo', {'RoomID': roominfo_raw['RoomID']})
-            mysql_wechat4bot2hye.delete('WeChatRoomMemberInfo', {'RoomID': roominfo_raw['RoomID']})
-            count = 0
-            for member in members:
-                userinfo_raws = mysql_wechat4bot2hye.select('UserInfo', where_dict={'U_UserID': member['vcSerialNo']})
-                self.insert_room_member_data(member, roominfo_raw, userinfo_raws, mysql_wechat_gemii, is_gemii=True)
-                self.insert_room_member_data(member, roominfo_raw, userinfo_raws, mysql_wechat4bot2hye)
-                count += 1
-            django_log.info('更新U_RoomID：%s的(%s)个成员信息成功' % (str(chatroom_id),count))
-        finally:
-            mysql_wechat_gemii.close()
-            mysql_wechat4bot2hye.close()
+        WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roominfo_raw.RoomID).delete()
+        WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roominfo_raw.RoomID).delete()
 
-    def insert_room_member_data(self, member, roominfo_raw, userinfo_raws, db, is_gemii=False):
-        roommerber_data = {
-            'RoomID': roominfo_raw['RoomID'],
+        count = 0
+        for member in members:
+            try:
+                userinfo_raw = UserInfo.objects.using(db_wyeth_choice).get(U_UserID=member['vcSerialNo'])
+            except UserInfo.DoesNotExist:
+                django_log.info('未匹配到UserInfo [%s]数据' % (member['vcSerialNo']))
+                userinfo_raw = ''
+            self.insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice)
+            count += 1
+        django_log.info('更新U_RoomID：%s的(%s)个成员信息成功' % (str(chatroom_id), count))
+
+    def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
+        roommember_data = {
+            'RoomID': roominfo_raw.RoomID,
             'NickName': member['vcNickName'],
             'U_UserID': member['vcSerialNo'],
             'member_icon': member['vcHeadImages'],
             'DisplayName': member['vcNickName'],
         }
-        if userinfo_raws:
-            userinfo_raw = userinfo_raws[0]
-            roommerber_data['open_id'] = userinfo_raw['Openid']
-            roommerber_data['UserID'] = userinfo_raw['id']
-        if is_gemii:
-            roommerber_data['MemberID'] = member['vcSerialNo']
-        db.insert('WeChatRoomMemberInfo', roommerber_data)
+
+        if userinfo_raw:
+            roommember_data['open_id'] = userinfo_raw.Openid,
+            roommember_data['UserID'] = userinfo_raw.id
+
+        gemii_data = roommember_data
+
+        gemii_data['MemberID'] = member['vcSerialNo']
+
+        WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
+        WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
 
 
 class GetUrobotQucode(View):
@@ -319,79 +445,83 @@ class UnotityCallback(View):
             response = {'code': 1, 'msg': '表单参数错误'}
             return response
 
-        mysql = MysqlDB(DBCONF.wechat4bot2hye_config)
         try:
-            roominfo_raw = mysql.select('WeChatRoomInfo', where_dict={'U_RoomID': room_id})
-            roominfo_raw = roominfo_raw[0]
-            mysql.update('UserInfo', {'U_UserID': user_id, 'UserName': user_nickname}, {'Openid': open_id,'MatchGroup': roominfo_raw['RoomID']})
-            userinfo_raws = mysql.select('UserInfo', where_dict={'Openid': open_id,'MatchGroup': roominfo_raw['RoomID']})
+            chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=room_id)
+            serNum = chatroom_record.serNum
+        except ChatRoomModel.DoesNotExist:
+            serNum = 'B'
 
-            if userinfo_raws:
-                userinfo_raw = userinfo_raws[0]
-                now = datetime.datetime.now()
-                user_status_parm = {
-                    'PhoneCode': verify_code,
-                    'UserID': user_id,
-                    'FriendStatus': '已确认好友',
-                    'EnterGroupStatus': '已入群',
-                    'FKUserInfoID': userinfo_raw['id'],
-                    'FriendTime': now,
-                    'ConfirmStatus': now,
-                    'GroupTime': now,
-                    'MatchStatus': '群匹配成功',
-                    'MatchGroup': userinfo_raw['MatchGroup'],
-                    'UserName': user_nickname,
-                    'Type': 'offers',
-                }
-                mysql.insert('UserStatus', user_status_parm)
-                django_log.info('成功插入UserStatus数据：%s' % user_status_parm)
-                self.handle_member_enter_room(room_id, room_name, user_id, user_nickname,userinfo_raws,user_head_img)
-            else:
-                response = {'code': 1, 'msg': '未找到openid关联的用户'}
-        except Exception, e:
-            django_log.info(e)
-        finally:
-            mysql.close()
+        if serNum == 'A':
+            db_gemii_choice = 'gemii'
+            db_wyeth_choice = 'wyeth'
+        # TODo elif serNum=='B'
+        else:
+            db_gemii_choice = 'gemii_b'
+            db_wyeth_choice = 'wyeth_b'
+
+        try:
+            room_record = WeChatRoomInfo.objects.using(db_wyeth_choice).get(U_RoomID=room_id)
+        except WeChatRoomMemberInfo.DoesNotExist:
+            django_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(room_id)))
+            return None
+
+        userinfo_records = UserInfo.objects.using(db_wyeth_choice).filter(Openid=open_id, MatchGroup=room_record.RoomID)
+
+        if userinfo_records.exists():
+            userinfo_records.update(U_UserID=user_id, UserName=user_nickname)
+            userinfo_record = userinfo_records.first()
+
+            now = datetime.datetime.now()
+            user_status_parm = {
+                'PhoneCode': verify_code,
+                'UserID': user_id,
+                'FriendStatus': '已确认好友',
+                'EnterGroupStatus': '已入群',
+                'FKUserInfoID': userinfo_record.id,
+                'FriendTime': now,
+                'ConfirmStatus': now,
+                'GroupTime': now,
+                'MatchStatus': '群匹配成功',
+                'MatchGroup': userinfo_record.MatchGroup,
+                'UserName': user_nickname,
+                'Type': 'offers',
+            }
+
+            UserStatus.objects.create(**user_status_parm)
+            django_log.info('成功插入UserStatus数据：%s' % user_status_parm)
+            self.handle_member_enter_room(room_id, room_name, user_id, user_nickname, userinfo_record, user_head_img, db_wyeth_choice, db_gemii_choice)
+        else:
+            response = {'code': 1, 'msg': '未找到openid关联的用户'}
 
         return response
 
-    def handle_member_enter_room(self, u_roomid, room_name, u_user_id, user_nickname,userinfo_raw,user_head_img):
-
-        mysql_wechat_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-        mysql_wechat4bot2hye = MysqlDB(DBCONF.wechat4bot2hye_config)
+    def handle_member_enter_room(self, u_roomid, room_name, u_user_id, user_nickname, userinfo_raw, user_head_img, db_wyeth_choice, db_gemii_choice):
         try:
-            self.insert_room_member_data(u_roomid, room_name, u_user_id, user_nickname, userinfo_raw, user_head_img, mysql_wechat_gemii,is_gemii=True)
-            django_log.info('成功插入WeChatRoomMemberInfo数据（mysql_wechat_gemii）')
-            self.insert_room_member_data(u_roomid, room_name, u_user_id, user_nickname, userinfo_raw, user_head_img, mysql_wechat4bot2hye)
-            django_log.info('成功插入WeChatRoomMemberInfo数据（mysql_wechat4bot2hye）')
-        finally:
-            mysql_wechat_gemii.close()
-            mysql_wechat4bot2hye.close()
+            room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=u_roomid)
+        except WeChatRoomInfo.DoesNotExist:
+            room_record = ""
 
-    # @staticmethod
-    def insert_room_member_data(self, u_roomid, room_name, u_user_id, user_nickname, userinfo_raw, user_head_img, db,is_gemii=False):
-        roominfo_raw = db.select('WeChatRoomInfo', where_dict={'U_RoomID': u_roomid})
-
-        if roominfo_raw and userinfo_raw:
-            roominfo_raw = roominfo_raw[0]
-            userinfo_raw = userinfo_raw[0]
+        if room_record and userinfo_raw:
             roommerber_data = {
-                'RoomID': roominfo_raw['RoomID'],
+                'RoomID': room_record.RoomID,
                 'NickName': user_nickname,
                 'member_icon': user_head_img,
-                'open_id': userinfo_raw['Openid'],
-                'UserID': userinfo_raw['id'],
+                'open_id': userinfo_raw.Openid,
+                'UserID': userinfo_raw.id,
                 'U_UserID': u_user_id,
                 'DisplayName': user_nickname,
             }
-            if is_gemii:
-                roommerber_data['MemberID'] = u_user_id
-            db.insert('WeChatRoomMemberInfo', roommerber_data)
+
+            gemii_data = roommerber_data
+            gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            gemii_data['MemberID'] = u_user_id
+
+            WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
+            WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
 
     def post(self, request):
         response = self.unotity_callback(request)
         return HttpResponse(json.dumps(response), content_type="application/json")
-
 
 # write 2017/6/27 by kefei
 
@@ -411,12 +541,13 @@ class CreateRoomTaskView(View):
     """接受建群任务进行建群处理"""
     def create_room_task(self, request, *args, **kwargs):
         # 解析请求参数
+        serNum = request.POST.get('serNum', False)
         theme = request.POST.get('theme', False)
         introduce = request.POST.get('introduce', False)
         limit_member_count = request.POST.get('limit_member_count', False)
         count = request.POST.get('count', False)
         # 参数传递不全时返回
-        if not (theme and introduce and limit_member_count and count):
+        if not (theme and introduce and limit_member_count and count and serNum):
             msg = {'code': 1, 'msg': "请传递完整的参数"}
             return msg
 
@@ -455,10 +586,10 @@ class CreateRoomTaskView(View):
                 'verify_code': verify_code
             }
         }
+
         # TODO 获取java传过来的库编号，写入RoomTask中
-        # serNum = request.POST.get['serNum']
-        # roomtask = RoomTask(serNum=serNum, task_id=task_id)
-        # roomtask.save()
+        roomtask = RoomTask(serNum=serNum, task_id=task_id)
+        roomtask.save()
 
         return response
 
@@ -500,24 +631,24 @@ class CreateRoomCallbackView(View):
             'data': room_info_list
         }
 
-        response = requests.post(CALLBACK_JAVA, data={"params": json.dumps(params)})
+        response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
 
         # TODO 写入数据到群信息表中
         # 根据task_id获取库编号
-        # try:
-        #     serNum_record = RoomTask.objects.get(task_id=task_id)
-        #     serNum = serNum_record.serNum
-        #
-        #     # 写入数据到群信息表中
-        #     for room_info in room_info_list:
-        #         vcChatRoomSerialNo = room_info['uRoomId']
-        #         vcName = room_info['roomName']
-        #
-        #         chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
-        #                                  vcName=vcName, serNum=serNum)
-        #         chatroom.save()
-        # except RoomTask.DoesNotExist:
-        #     django_log.info('未找到任务编号')
+        try:
+            serNum_record = RoomTask.objects.get(task_id=task_id)
+            serNum = serNum_record.serNum
+
+            # 写入数据到群信息表中
+            for room_info in room_info_list:
+                vcChatRoomSerialNo = room_info['uRoomId']
+                vcName = room_info['roomName']
+
+                chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
+                                         vcName=vcName, serNum=serNum)
+                chatroom.save()
+        except RoomTask.DoesNotExist:
+            django_log.info('未找到任务编号')
 
         return HttpResponse('SUCCESS.')
 

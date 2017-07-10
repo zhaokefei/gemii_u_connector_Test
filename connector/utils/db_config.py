@@ -85,51 +85,6 @@ class DBCONF(object):
     }
 
 
-class MsgConf(object):
-
-    # 生产B redis
-    redis_jbb_b = {
-        ## Product
-        # 'host': 'gemii-jbb.ldtntv.ng.0001.cnn1.cache.amazonaws.com.cn',
-        # 'port': '6379',
-        # 'password': '',
-        # 'db': 0,
-        # 'type': 'B'
-
-        ## Test
-        'host': '54.223.198.95',
-        'port': '8081',
-        'password': 'gemii@123.cc',
-        'db': 0,
-        'type': 'B'
-    }
-
-    # 生产A redis
-    redis_wyeth_a = {
-        ## Product
-        # 'host': '54.223.132.253',
-        # 'port': '8081',
-        # 'password': 'gemii@123.cc',
-        # 'db': 0,
-        # 'type': 'A'
-
-        ## Test
-        'host': '54.223.198.95',
-        'port': '8081',
-        'password': 'gemii@123.cc',
-        'db': 0,
-        'type': 'B'
-    }
-
-    # 测试 redis
-    redis_test = {
-        'host': '54.223.198.95',
-        'port': '8081',
-        'password': 'gemii@123.cc',
-        'db': 0,
-        'type': 'B'
-    }
-
 
 
 def print_file(char):

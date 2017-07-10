@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'connector',
     'wechat',
+    'wyeth',
     'legacy_system',
     'rest_framework',
 ]
@@ -79,14 +80,7 @@ WSGI_APPLICATION = 'UConnector.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#    }
-#}
 
-#
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -139,54 +133,49 @@ DATABASES = {
             'charset': 'utf8mb4',
         },
     },
-
-    # 何鹏数据库
-    'db_hp': {
+    'wyeth_b': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'u_connector',
+        'NAME': 'wechat_bot',
         'USER': 'root',
-        'PASSWORD':'t721si74',
-        'HOST':'robot4yc.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn',
+        'PASSWORD': 't721si74',
+        'HOST': 'gemii.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn',
+        'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
         },
     },
-    'localhost': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'u_connector',
-        'USER': 'root',
-        'PASSWORD': '123456',
-        'HOST': 'localhost',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
-    }
 }
+
+REDIS_CONFIG = {
+    'reids_a': {
+        'host': '54.223.198.95',
+        'port': '8081',
+        'password': 'gemii@123.cc',
+        'db': 0,
+        'type': 'A'
+    },
+    'reids_b': {
+        'host': '54.223.198.95',
+        'port': '8081',
+        'password': 'gemii@123.cc',
+        'db': 0,
+        'type': 'B'
+    },
+}
+
+CALLBACK_JAVA = "http://mt.gemii.cc/GroupManage/file/updateInfo"
 
 DATABASE_ROUTERS = ['UConnector.router.AuthRouter']
 
+
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-    }
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://[:gemii@123.cc]@54.223.198.95:8081/1",
+    },
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'u_connector',
-#         'USER': 'root',
-#         'PASSWORD': 'root',
-#         'HOST': 'localhost',
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-#             'charset': 'utf8mb4',
-#         },
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -265,6 +254,18 @@ LOGGING = {
             'filename': '/var/log/django/messaga.error.log',
             'formatter': 'verbose',
         },
+        'member_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/member.info.log',
+            'formatter': 'verbose',
+        },
+        'member_error_handler': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/member.error.log',
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
@@ -292,7 +293,12 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-    }
+        'member': {
+            'handlers': ['member_handler', 'member_error_handler'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
 }
 
 

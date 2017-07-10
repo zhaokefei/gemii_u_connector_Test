@@ -3,12 +3,15 @@
 Created on 2017年6月1日
 
 '''
-from rest_framework import serializers
-from connector.models import ChatMessageModel, MemberInfo
-from connector.utils.mysql_db import MysqlDB
-from connector.utils.db_config import DBCONF
 
+import datetime
 import logging
+
+from rest_framework import serializers
+from connector.models import ChatMessageModel
+from django.core.cache import cache
+
+from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii
 
 # old system
 # {
@@ -26,14 +29,13 @@ django_log = logging.getLogger('django')
 
 msg_type_map = {'2001': 1, '2002': 47, '2005': 49, '2003': 34}
 
-
 class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     Content = serializers.SerializerMethodField('get_content')
     MsgType = serializers.SerializerMethodField('get_msg_type')
     AppMsgType = serializers.SerializerMethodField('get_app_msg_type')
     UserDisplayName = serializers.SerializerMethodField('get_nickname')
     MsgId = serializers.CharField(source='vcSerialNo')
-    CreateTime = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source='dtMsgTime')
+    CreateTime = serializers.SerializerMethodField('get_creat_time')
     RoomID = serializers.SerializerMethodField('get_room_id')
     MemberID = serializers.SerializerMethodField('get_member_id')
     UserNickName = serializers.SerializerMethodField('get_nickname')
@@ -52,79 +54,70 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
         return 0
 
     def get_room_id(self, obj):
-        u_roomid = obj.vcChatRoomSerialNo
+        u_roomid = str(obj.vcChatRoomSerialNo)
+        key = 'wechatroominfo_roomid:{u_roomid}'.format(u_roomid=u_roomid)
+        room_id = cache.get(key)
+        if not room_id:
+            try:
+                room_record = WeChatRoomInfoGemii.objects.get(U_RoomID=u_roomid)
+                room_id = room_record.RoomID
+            except WeChatRoomInfoGemii.DoesNotExist:
+                room_id = ""
+            cache.set(key, room_id)
 
-        mysql = MysqlDB(DBCONF.wechat_gemii_config)
-        try:
-            room_record = mysql.select('WeChatRoomInfo', where_dict={'U_RoomID': str(u_roomid)})
-            roomId = room_record[0]['RoomID']
-            # if room_record:
-            #     roomId = room_record[0]['RoomID']
-            # else:
-            #     roomId = ''
-            #     django_log.info('未找到发送消息对应的群')
-        except:
-            return ''
-        finally:
-            mysql.close()
-
-        return roomId
+        return room_id
 
     def get_member_id(self, obj):
-        mysql_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-        mysql_bot = MysqlDB(DBCONF.wechat4bot2hye_config)
+        u_userid = str(obj.vcFromWxUserSerialNo)
+        room_id = self.get_room_id(obj)
+        key = 'wechatroommemberinfo_memberid:{room_id}:{u_userid}'.format(room_id=room_id, u_userid=u_userid)
+        member_id = cache.get(key)
+        if not member_id:
+            try:
+                member_record = WeChatRoomMemberInfoGemii.objects.get(U_UserID=u_userid, RoomID=room_id)
+                member_id = member_record.MemberID
+            except WeChatRoomMemberInfoGemii.DoesNotExist:
+                member_id = ""
 
-        try:
-            room_id = self.get_room_id(obj)
-            # u_userid = mysql_bot.select('UserInfo', where_dict={'U_UserID': str(obj.vcFromWxUserSerialNo)})
-            memeber_record = mysql_gemii.select('WeChatRoomMemberInfo',
-                                                where_dict={'U_UserID': str(obj.vcFromWxUserSerialNo),
-                                                            'RoomID': str(room_id)})
-            memeber_id = memeber_record[0]['MemberID']
-        except:
-            return ''
-        finally:
-            mysql_bot.close()
-            mysql_gemii.close()
+            cache.set(key, member_id)
 
-        return memeber_id
+        return member_id
 
     def get_nickname(self, obj):
-        print obj.vcFromWxUserSerialNo, 'hello'
-        mysql_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-        try:
-            u_userid = mysql_gemii.select('WeChatRoomMemberInfo',
-                                          where_dict={'U_UserID': str(obj.vcFromWxUserSerialNo)})
-            # user_name = MemberInfo.objects.get(vcSerialNo=str(obj.vcFromWxUserSerialNo))
-            user_nickname = u_userid[0]['NickName']
-        except:
-            return ''
-        finally:
-            mysql_gemii.close()
+        u_userid = str(obj.vcFromWxUserSerialNo)
+        key = 'wechatroommemberinfo_username:{u_userid}'.format(u_userid=u_userid)
+        user_nickname = cache.get(key)
+        if not user_nickname:
+            try:
+                nickname_record = WeChatRoomMemberInfoGemii.objects.get(U_UserID=u_userid)
+                user_nickname = nickname_record.NickName
+            except WeChatRoomMemberInfoGemii.DoesNotExist:
+                user_nickname = ""
+
+            cache.set(key, user_nickname)
 
         return user_nickname
 
     def get_mermer_icon(self, obj):
-        mysql_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-        mysql_bot = MysqlDB(DBCONF.wechat4bot2hye_config)
+        room_id = self.get_room_id(obj)
+        u_userid = str(obj.vcFromWxUserSerialNo)
+        # cache
+        key = 'wechatroommemberinfo_membericon:{room_id}:{u_userid}'.format(room_id=room_id, u_userid=u_userid)
+        member_icon = cache.get(key)
+        if not member_icon:
+            try:
+                member_icon_record = WeChatRoomMemberInfoGemii.objects.get(U_UserID=u_userid, RoomID=room_id)
+                member_icon = member_icon_record.member_icon
+            except WeChatRoomMemberInfoGemii.DoesNotExist:
+                member_icon = ""
 
-        try:
-            room_id = self.get_room_id(obj)
-            # u_userid = mysql_bot.select('UserInfo', where_dict={'U_UserID': str(obj.vcFromWxUserSerialNo)})
-            memeber_record = mysql_gemii.select('WeChatRoomMemberInfo',
-                                                where_dict={'U_UserID': str(obj.vcFromWxUserSerialNo),
-                                                            'RoomID': str(room_id)})
+            cache.set(key, member_icon)
 
-            member_icon = memeber_record[0]['member_icon']
-        except:
-            return ''
-        finally:
-            mysql_bot.close()
-            mysql_gemii.close()
         return member_icon
 
-    #    def get_default_name(self, obj):
-    #        return ''
+    def get_creat_time(self, obj):
+        return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 
     class Meta:
         model = ChatMessageModel
