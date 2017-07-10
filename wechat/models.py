@@ -32,7 +32,7 @@ class WeChatRoomMessageGemii(models.Model):
 
 
 class WeChatRoomMemberInfoGemii(models.Model):
-    MemberID = models.IntegerField(primary_key=True)
+    MemberID = models.CharField(max_length=50)
     RoomID = models.CharField(max_length=100)
     NickName = models.CharField(max_length=500, null=True, blank=True)
     U_UserID = models.CharField(max_length=255, null=True, blank=True)
