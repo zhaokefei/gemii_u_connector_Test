@@ -174,7 +174,7 @@ DATABASE_ROUTERS = ['UConnector.router.AuthRouter']
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://[:gemii@123.cc]@54.223.198.95:8081/1",
+        "LOCATION": "redis://[:gemii@123.cc]@54.223.198.95:8081/0",
     },
 }
 
@@ -332,7 +332,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
