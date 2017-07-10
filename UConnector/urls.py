@@ -16,12 +16,9 @@ Including another URLconf
 from django.conf.urls import url,include
 from django.contrib import admin
 
-from connector import run_once_time
-
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^connector/', include('connector.urls')),
 ]
 
 
-run_once_time()
