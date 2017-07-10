@@ -4,6 +4,8 @@
 
 import os
 import json
+import datetime
+import time
 
 def save_json(filename, data, dirName, mode='a'):
     """
@@ -22,3 +24,10 @@ def save_json(filename, data, dirName, mode='a'):
     with open(fn, mode) as f:
         f.write(json.dumps(data, indent=4) + '\n')
     return fn
+
+def time_strf(time_str):
+    if isinstance(time_str,unicode):
+        time_str = time_str.encode('utf-8')
+    datestr = time.strptime(time_str, '%Y/%m/%d %H:%M:%S')
+    date_time = datestr[0:6]
+    return datetime.datetime(*date_time)

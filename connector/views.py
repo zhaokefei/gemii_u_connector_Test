@@ -23,6 +23,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     DropOutChatRoomSerializer, MemberInfoSerializer
 
 from django.conf import settings
+from connector.utils import commont_tool
 
 from legacy_system.publish import pub_message,intochatroom, rece_msg
 # Create your views here.
@@ -373,6 +374,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         gemii_data = roommember_data
 
         gemii_data['MemberID'] = member['vcSerialNo']
+        gemii_data['enter_group_time'] = commont_tool.time_strf(member['dtCreateDate'])
 
         WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
         WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
