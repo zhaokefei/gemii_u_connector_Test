@@ -273,7 +273,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
                 self.perform_create(serializer)
                 # chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
                 # chatroom.member.add(serializer.instance)
-        django_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
+        member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
         self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
 
@@ -338,9 +338,9 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         try:
             roominfo_raw = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=chatroom_id)
         except WeChatRoomInfoGemii.DoesNotExist:
-            django_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(chatroom_id)))
+            member_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(chatroom_id)))
             return None
-        django_log.info('开始更新U_RoomID：%s的成员信息' % (str(chatroom_id)))
+        member_log.info('开始更新U_RoomID：%s的成员信息' % (str(chatroom_id)))
         WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roominfo_raw.RoomID).delete()
         WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roominfo_raw.RoomID).delete()
 
@@ -358,7 +358,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
                 userinfo_raw = ''
             self.insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice)
             count += 1
-        django_log.info('更新U_RoomID：%s的(%s)个成员信息成功' % (str(chatroom_id), count))
+        member_log.info('更新U_RoomID：%s的(%s)个成员信息成功' % (str(chatroom_id), count))
 
     def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
         roommember_data = {
