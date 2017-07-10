@@ -150,14 +150,14 @@ DATABASES = {
 }
 
 REDIS_CONFIG = {
-    'reids_a': {
+    'redis_a': {
         'host': '54.223.198.95',
         'port': '8081',
         'password': 'gemii@123.cc',
         'db': 0,
         'type': 'A'
     },
-    'reids_b': {
+    'redis_b': {
         'host': '54.223.198.95',
         'port': '8081',
         'password': 'gemii@123.cc',
