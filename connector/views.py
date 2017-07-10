@@ -67,17 +67,17 @@ class ChatRoomView(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 self.perform_create(serializer)
-            #更新U-roomid
-            u_roomid = data['vcChatRoomSerialNo']
-            vcName = data['vcName']
-            mysql_wechat_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-            mysql_wechat4bot2hye = MysqlDB(DBCONF.wechat4bot2hye_config)
-            try:
-                mysql_wechat_gemii.update('WeChatRoomInfo', {'U_RoomID': u_roomid}, {'RoomName': vcName})
-                mysql_wechat4bot2hye.update('WeChatRoomInfo', {'U_RoomID': u_roomid}, {'RoomName': vcName})
-            finally:
-                mysql_wechat_gemii.close()
-                mysql_wechat4bot2hye.close()
+            # #更新U-roomid
+            # u_roomid = data['vcChatRoomSerialNo']
+            # vcName = data['vcName']
+            # mysql_wechat_gemii = MysqlDB(DBCONF.wechat_gemii_config)
+            # mysql_wechat4bot2hye = MysqlDB(DBCONF.wechat4bot2hye_config)
+            # try:
+            #     mysql_wechat_gemii.update('WeChatRoomInfo', {'U_RoomID': u_roomid}, {'RoomName': vcName})
+            #     mysql_wechat4bot2hye.update('WeChatRoomInfo', {'U_RoomID': u_roomid}, {'RoomName': vcName})
+            # finally:
+            #     mysql_wechat_gemii.close()
+            #     mysql_wechat4bot2hye.close()
         return HttpResponse('SUCCESS')
 
 class ChatMessageListView(viewsets.ModelViewSet):

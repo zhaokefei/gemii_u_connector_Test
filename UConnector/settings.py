@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'connector',
+    'wechat',
     'legacy_system',
     'rest_framework',
 ]
@@ -100,6 +101,45 @@ DATABASES = {
                 },
     },
 
+    'gemii': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wechat_gemii',
+        'USER': 'root',
+        'PASSWORD': 't721si74',
+        'HOST': 'gemii.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        },
+    },
+
+    'gemii_b': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wechat_gemii',
+        'USER': 'root',
+        'PASSWORD': 't721si74',
+        'HOST': 'gemii.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        },
+    },
+
+    'wyeth': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wechat_bot',
+        'USER': 'root',
+        'PASSWORD': 't721si74',
+        'HOST': 'gemii.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        },
+    },
+
     # 何鹏数据库
     'db_hp': {
         'ENGINE': 'django.db.backends.mysql',
@@ -124,6 +164,8 @@ DATABASES = {
         },
     }
 }
+
+DATABASE_ROUTERS = ['UConnector.router.AuthRouter']
 
 CACHES = {
     'default': {

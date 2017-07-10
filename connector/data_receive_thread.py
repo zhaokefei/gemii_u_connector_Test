@@ -9,8 +9,7 @@ import redis
 import logging
 import apis
 from django.core import signals
-from connector.utils.mysql_db import MysqlDB
-from connector.utils.db_config import DBCONF
+from wechat.models import WeChatRoomMessageGemii
 
 CODE_STR = string.ascii_letters + string.digits
 django_log = logging.getLogger('message')
@@ -133,27 +132,30 @@ class DataReceiveThread(threading.Thread):
 
                     if self.type == 'A':
                         django_log.info('开始进入A库存数据')
-                        mysql_wechat_a_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-                        try:
-                            mysql_wechat_a_gemii.insert('WeChatRoomMessage', robot_msg)
-                            django_log.info('插入wechatroommessage数据 %s' % robot_msg)
-                        except Exception, e:
-                            django_log.info('数据插入错误 %s' % e.message)
-                        finally:
-                            mysql_wechat_a_gemii.close()
+                        WeChatRoomMessageGemii.objects.create(**robot_msg)
+                        django_log.info('数据插入完成')
+                        # mysql_wechat_a_gemii = MysqlDB(DBCONF.wechat_gemii_config)
+                        # try:
+                        #     mysql_wechat_a_gemii.insert('WeChatRoomMessage', robot_msg)
+                        #     django_log.info('插入wechatroommessage数据 %s' % robot_msg)
+                        # except Exception, e:
+                        #     django_log.info('数据插入错误 %s' % e.message)
+                        # finally:
+                        #     mysql_wechat_a_gemii.close()
                         self.redis.publish(self.channel_pub, json.dumps(robot_msg))
 
                     # elif self.type == 'B':
                     else:
                         django_log.info('开始进入B库存数据')
-                        mysql_wechat_b_gemii = MysqlDB(DBCONF.wechat_gemii_config)
-                        try:
-                            mysql_wechat_b_gemii.insert('WeChatRoomMessage', robot_msg)
-                            django_log.info('插入B库wechatroommessage数据 %s' % str(robot_msg))
-                        except Exception, e:
-                            django_log.info('数据插入错误 %s' % e.message)
-                        finally:
-                            mysql_wechat_b_gemii.close()
+                        WeChatRoomMessageGemii.objects.using('gemii_b').create(**robot_msg)
+                        # mysql_wechat_b_gemii = MysqlDB(DBCONF.wechat_gemii_config)
+                        # try:
+                        #     mysql_wechat_b_gemii.insert('WeChatRoomMessage', robot_msg)
+                        #     django_log.info('插入B库wechatroommessage数据 %s' % str(robot_msg))
+                        # except Exception, e:
+                        #     django_log.info('数据插入错误 %s' % e.message)
+                        # finally:
+                        #     mysql_wechat_b_gemii.close()
                         self.redis.publish(self.channel_pub, json.dumps(robot_msg))
                 else:
                     django_log.info('消息存库失败------>由创返回码为 %s' % str(response))

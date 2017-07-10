@@ -17,6 +17,7 @@ from connector.models import ChatRoomModel
 from connector.utils.mysql_db import MysqlDB
 from connector.utils.db_config import DBCONF
 from connector.utils.constant import MsgConf
+from wechat.models import WeChatRoomMessageGemii
 
 # # 生产connect redis
 # redis_b = MsgConf.redis_jbb_b
