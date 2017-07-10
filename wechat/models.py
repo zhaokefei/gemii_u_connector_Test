@@ -16,7 +16,7 @@ class WeChatRoomInfoGemii(models.Model):
 
 
 class WeChatRoomMessageGemii(models.Model):
-    MsgID = models.CharField(max_length=50, primary_key=True)
+    MsgId = models.CharField(max_length=50, primary_key=True)
     Content = models.TextField()
     MsgType = models.IntegerField()
     AppMsgType = models.IntegerField()
