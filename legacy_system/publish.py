@@ -54,8 +54,9 @@ def pub_message(sender, instance=None, created=False, **kwargs):
             else:
                 # 需要存数据至B库
                 django_log.info('即将存入B库')
-                WeChatRoomMessageGemii.objects.using('gemii_b').create(**serializer.data)
                 django_log.info('serialiser B库----- %s' % str(serializer.data))
+                WeChatRoomMessageGemii.objects.using('gemii_b').create(**serializer.data)
+                # django_log.info('serialiser B库----- %s' % str(serializer.data))
 
                 # 发送至B的redis
                 django_log.info('发送消息至B库Redis')
