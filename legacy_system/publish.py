@@ -35,13 +35,15 @@ def pub_message(sender, instance=None, created=False, **kwargs):
     if created:
         u_roomid = instance.vcChatRoomSerialNo
         django_log.info('用户发消息对应的群编号 %s' % str(u_roomid))
+        django_log.info('instance %s' % str(instance))
         serializer = LegacyChatRoomMessageSerializer(instance)
+        django_log.info('serialiser-----> %s' % str(serializer.data))
         try:
             record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
             # B库存储
             if record.serNum == 'A':
                 # 需要存数据库至A库
-                django_log.info('即将存入B库')
+                django_log.info('即将存入A库')
                 WeChatRoomMessageGemii.objects.create(**serializer.data)
                 django_log.info('存储至 A库数据----- %s' % str(serializer.data))
 
@@ -54,7 +56,6 @@ def pub_message(sender, instance=None, created=False, **kwargs):
             else:
                 # 需要存数据至B库
                 django_log.info('即将存入B库')
-                django_log.info('serialiser B库----- %s' % str(serializer.data))
                 WeChatRoomMessageGemii.objects.using('gemii_b').create(**serializer.data)
                 # django_log.info('serialiser B库----- %s' % str(serializer.data))
 
