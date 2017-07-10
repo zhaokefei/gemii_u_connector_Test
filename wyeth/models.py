@@ -40,7 +40,7 @@ class WeChatRoomMemberInfo(models.Model):
     open_id = models.CharField(max_length=100, null=True, blank=True)
     UserID = models.CharField(max_length=255, null=True, blank=True)
     member_icon = models.CharField(max_length=255, null=True, blank=True)
-
+    enter_group_time = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         db_table = 'WeChatRoomMemberInfo'
