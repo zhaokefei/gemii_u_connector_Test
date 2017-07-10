@@ -19,13 +19,12 @@ from connector.utils.mysql_db import MysqlDB
 from connector.utils.db_config import DBCONF,print_file
 from connector.utils import commont_tool
 from .models import ChatMessageModel, URobotModel, ChatRoomModel, \
-    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask
 from .serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
     DropOutChatRoomSerializer, MemberInfoSerializer
 
-
-
+from connector.utils.db_config import CALLBACK_JAVA
 
 from legacy_system.publish import pub_message,intochatroom, rece_msg
 # Create your views here.
@@ -456,6 +455,10 @@ class CreateRoomTaskView(View):
                 'verify_code': verify_code
             }
         }
+        # TODO 获取java传过来的库编号，写入RoomTask中
+        # serNum = request.POST.get['serNum']
+        # roomtask = RoomTask(serNum=serNum, task_id=task_id)
+        # roomtask.save()
 
         return response
 
@@ -492,15 +495,30 @@ class CreateRoomCallbackView(View):
             })
 
         # 调用java接口发送群信息
-        # url = "http://jbb.gemii.cc/GroupManage/file/updateInfo"
-        url = "http://mt.gemii.cc/GroupManage/file/updateInfo"
         params = {
             'taskId': task_id,
             'data': room_info_list
         }
 
+        response = requests.post(CALLBACK_JAVA, data={"params": json.dumps(params)})
 
-        response = requests.post(url, data={"params": json.dumps(params)})
+        # TODO 写入数据到群信息表中
+        # 根据task_id获取库编号
+        # try:
+        #     serNum_record = RoomTask.objects.get(task_id=task_id)
+        #     serNum = serNum_record.serNum
+        #
+        #     # 写入数据到群信息表中
+        #     for room_info in room_info_list:
+        #         vcChatRoomSerialNo = room_info['uRoomId']
+        #         vcName = room_info['roomName']
+        #
+        #         chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
+        #                                  vcName=vcName, serNum=serNum)
+        #         chatroom.save()
+        # except RoomTask.DoesNotExist:
+        #     django_log.info('未找到任务编号')
+
         return HttpResponse('SUCCESS.')
 
 

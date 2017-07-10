@@ -26,7 +26,7 @@ SECRET_KEY = 'b@%h+42m$vqj)ms3%l3a86p*72&6(lo)!w_(skg8qu%k0uv%wv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['54.223.198.95','mt.gemii.cc']
+ALLOWED_HOSTS = ['54.223.198.95','mt.gemii.cc', 'localhost']
 # APPEND_SLASH = False
 
 # Application definition
@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'UConnector.wsgi.application'
 #    }
 #}
 
-
+#
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -125,18 +125,25 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
-#         'OPTIONS': {
-#             'init_command': 'SET storage_engine=INNODB',
-#         },
 #         'NAME': 'u_connector',
 #         'USER': 'root',
-#         'PASSWORD': 't721si74',
+#         'PASSWORD': 'root',
 #         'HOST': 'localhost',
-#         'PORT': '3306',
-#     },
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#             'charset': 'utf8mb4',
+#         },
+#     }
 # }
 
 # Password validation

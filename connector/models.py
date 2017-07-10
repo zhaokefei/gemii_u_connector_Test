@@ -49,7 +49,8 @@ class ChatRoomModel(models.Model):
     vcApplyCodeSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'验证码编号')
     # 自定义关系属性
     member = models.ManyToManyField(MemberInfo, blank=True, verbose_name=u'群成员')
-    
+    serNum = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'库编号')
+
     class Meta:
         db_table = 'chatroom_info'
         verbose_name_plural = verbose_name = u'群信息'
@@ -118,3 +119,12 @@ class ChatMessageModel(models.Model):
         db_table = 'chatmessage'
         ordering = ['-dtMsgTime']
         verbose_name_plural = verbose_name = u'群内聊天信息'
+
+
+class RoomTask(models.Model):
+    task_id = models.CharField(max_length=50, verbose_name=u'建群任务编号')
+    serNum = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'库编号')
+
+    class Meta:
+        db_table = 'roomtask'
+        verbose_name_plural = verbose_name = u'建群任务信息'

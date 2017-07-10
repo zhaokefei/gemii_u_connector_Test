@@ -24,7 +24,7 @@ import logging
 # }
 django_log = logging.getLogger('django')
 
-msg_type_map = {'2001': 1, '2002': 47, '2005': 3, '2003': 1}
+msg_type_map = {'2001': 1, '2002': 47, '2005': 49, '2003': 34}
 
 
 class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):

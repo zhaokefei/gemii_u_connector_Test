@@ -27,7 +27,7 @@ class BaseRequest(object):
         self._data = value
     def request(self):
         url = self.host + self.api
-        r = self.method(url, data=self.data, headers=self.headers)
+        r = self.method(url, data=self.data, headers=self.headers, timeout=2)
         return r.content
 
 class URequest(BaseRequest):
