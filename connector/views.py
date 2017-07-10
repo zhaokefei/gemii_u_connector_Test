@@ -6,6 +6,7 @@ import json
 import datetime
 import requests
 import logging
+import copy
 from django.views.generic import View
 
 from django.http.response import HttpResponse
@@ -24,6 +25,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
 
 from django.conf import settings
 from connector.utils import commont_tool
+
 
 from legacy_system.publish import pub_message,intochatroom, rece_msg
 # Create your views here.
@@ -176,7 +178,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     roommerber_data['open_id'] = user_record.Openid
                     roommerber_data['UserID'] = user_record.id
 
-                gemii_data = roommerber_data
+                gemii_data = copy.copy(roommerber_data)
 
                 gemii_data['MemberID'] = u_userid
                 gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -371,7 +373,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
             roommember_data['open_id'] = userinfo_raw.Openid
             roommember_data['UserID'] = str(userinfo_raw.id)
 
-        gemii_data = roommember_data
+        gemii_data = copy.copy(roommember_data)
 
         gemii_data['MemberID'] = member['vcSerialNo']
         gemii_data['enter_group_time'] = commont_tool.time_strf(member['dtCreateDate'])
@@ -519,7 +521,7 @@ class UnotityCallback(View):
                 'DisplayName': user_nickname,
             }
 
-            gemii_data = roommerber_data
+            gemii_data = copy.copy(roommerber_data)
             gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             gemii_data['MemberID'] = u_user_id
 
