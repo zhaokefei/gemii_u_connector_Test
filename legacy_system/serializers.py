@@ -51,11 +51,9 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
 
         if serNum == 'A':
             db_gemii_choice = 'gemii'
-            db_wyeth_choice = 'wyeth'
         # TODo elif serNum=='B'
         else:
             db_gemii_choice = 'gemii_b'
-            db_wyeth_choice = 'wyeth_b'
 
         return db_gemii_choice
 
@@ -105,12 +103,13 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
 
     def get_nickname(self, obj):
         u_userid = str(obj.vcFromWxUserSerialNo)
+        room_id = self.get_room_id(obj)
         db_gemii_choice = self.get_sernum(obj)
         key = 'wechatroommemberinfo_username:{u_userid}'.format(u_userid=u_userid)
         user_nickname = cache.get(key)
         if not user_nickname:
             try:
-                nickname_record = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).get(U_UserID=u_userid)
+                nickname_record = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).get(U_UserID=u_userid, RoomID=room_id)
                 user_nickname = nickname_record.NickName
             except WeChatRoomMemberInfoGemii.DoesNotExist:
                 user_nickname = ""
