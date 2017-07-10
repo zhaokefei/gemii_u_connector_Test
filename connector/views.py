@@ -343,10 +343,15 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
 
         count = 0
         for member in members:
-            try:
-                userinfo_raw = UserInfo.objects.using(db_wyeth_choice).get(U_UserID=member['vcSerialNo'])
-            except UserInfo.DoesNotExist:
-                django_log.info('未匹配到UserInfo [%s]数据' % (member['vcSerialNo']))
+            # try:
+            #     userinfo_raw = UserInfo.objects.using(db_wyeth_choice).filter(U_UserID=member['vcSerialNo'])
+            # except UserInfo.DoesNotExist:
+            #     django_log.info('未匹配到UserInfo [%s]数据' % (member['vcSerialNo']))
+            #     userinfo_raw = ''
+            userinfo_raws = UserInfo.objects.using(db_wyeth_choice).filter(U_UserID=member['vcSerialNo'])
+            if userinfo_raws:
+                userinfo_raw = userinfo_raws.first()
+            else:
                 userinfo_raw = ''
             self.insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice)
             count += 1
