@@ -7,9 +7,9 @@ Created on 2017年5月31日
 import logging
 import json
 import redis
+from django.conf import settings
 from django.dispatch.dispatcher import receiver
 from django.db.models.signals import post_save
-from django.conf import settings
 
 from connector.models import ChatMessageModel, IntoChatRoomMessageModel
 from legacy_system.serializers import LegacyChatRoomMessageSerializer
@@ -41,6 +41,7 @@ def pub_message(sender, instance=None, created=False, **kwargs):
             # B库存储
             if record.serNum == 'A':
                 # 需要存数据库至A库
+                django_log.info('即将存入B库')
                 WeChatRoomMessageGemii.objects.create(**serializer.data)
                 django_log.info('存储至 A库数据----- %s' % str(serializer.data))
 
@@ -52,6 +53,7 @@ def pub_message(sender, instance=None, created=False, **kwargs):
             # elif record.serNum == 'B':
             else:
                 # 需要存数据至B库
+                django_log.info('即将存入B库')
                 WeChatRoomMessageGemii.objects.using('gemii_b').create(**serializer.data)
                 django_log.info('serialiser B库----- %s' % str(serializer.data))
 
