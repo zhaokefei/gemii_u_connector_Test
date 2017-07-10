@@ -369,7 +369,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
 
         if userinfo_raw:
             roommember_data['open_id'] = userinfo_raw.Openid
-            roommember_data['UserID'] = userinfo_raw.id
+            roommember_data['UserID'] = str(userinfo_raw.id)
 
         gemii_data = roommember_data
 
