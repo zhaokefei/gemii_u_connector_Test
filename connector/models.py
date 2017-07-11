@@ -42,7 +42,7 @@ class MemberInfo(models.Model):
 class ChatRoomModel(models.Model):
     vcChatRoomSerialNo = models.CharField(max_length=50, unique=True, verbose_name=u'群编号')
     vcName = models.CharField(max_length=50, verbose_name=u'群昵称')
-    vcBase64Name = models.CharField(max_length=100, verbose_name=u'base64编码后的群昵称')
+    vcBase64Name = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'base64编码后的群昵称')
     vcWxUserSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'开群用户编号')
     vcWxManagerUserSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'群主的微信用户编号')
     vcRobotSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'机器人编号')
