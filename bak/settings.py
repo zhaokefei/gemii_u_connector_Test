@@ -31,6 +31,9 @@ DEBUG = True
 ALLOWED_HOSTS = ['54.223.198.95','mt.gemii.cc', 'localhost']
 # APPEND_SLASH = False
 
+No = '201706271010013'
+Sec = '201706271010013'
+
 # Application definition
 
 INSTALLED_APPS = [
