@@ -666,7 +666,7 @@ class CreateRoomCallbackView(View):
                 chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
                                          vcName=vcName, serNum=serNum, vcBase64Name=vcName)
                 chatroom.save()
-                django_log.info('插入数据至群信息,群编号：%s, 群名: %s' % (str(vcChatRoomSerialNo), str(vcName)))
+                # django_log.info('插入数据至群信息,群编号：%s, 群名: %s' % (str(vcChatRoomSerialNo), str(vcName)))
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
 
