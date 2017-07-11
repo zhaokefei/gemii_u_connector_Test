@@ -271,8 +271,11 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
             serializer = self.get_serializer(data=member)
             if serializer.is_valid():
                 self.perform_create(serializer)
-                # chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
-                # chatroom.member.add(serializer.instance)
+                try:
+                    chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+                    chatroom.member.add(serializer.instance)
+                except ChatRoomModel.DoesNotExist:
+                    pass
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
         self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
