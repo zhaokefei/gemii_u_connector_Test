@@ -483,7 +483,7 @@ class UnotityCallback(View):
 
         if userinfo_records.exists():
             userinfo_records.update(U_UserID=user_id, UserName=user_nickname)
-            member_log.info('更新usinfo信息,u_userid:%s,UserName:%s' % (str(user_id), str(user_nickname)))
+            member_log.info('update userinfo')
             userinfo_record = userinfo_records.first()
 
             now = datetime.datetime.now()
