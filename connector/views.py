@@ -90,11 +90,16 @@ class ChatMessageListView(viewsets.ModelViewSet):
     serializer_class = ChatMessageSerializer
 
     def create(self, request, *args, **kwargs):
-        request_data = json.loads(request.data['strContext'])['Data']
-        for data in request_data:
-            serializer = self.get_serializer(data=data)
-            if serializer.is_valid():
-                self.perform_create(serializer)
+        try:
+            request_data = json.loads(request.data['strContext'])['Data']
+            for data in request_data:
+                serializer = self.get_serializer(data=data)
+                if serializer.is_valid():
+                    self.perform_create(serializer)
+        except Exception, e:
+            django_log.info('chatroom message callback error %s' % e.message)
+            django_log.info('callbak message %s' % request.data['strContext'])
+
         return HttpResponse('SUCCESS')
 
 class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
