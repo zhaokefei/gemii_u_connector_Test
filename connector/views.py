@@ -133,7 +133,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             u_userid = member['vcWxUserSerialNo']
             try:
                 chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
-                serNum = chatroom_record.serNum
+                serNum = str(chatroom_record.serNum)
             except ChatRoomModel.DoesNotExist:
                 serNum = 'B'
 
@@ -219,7 +219,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             u_userid= data['vcWxUserSerialNo']
             try:
                 chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
-                serNum = chatroom_record.serNum
+                serNum = str(chatroom_record.serNum)
             except ChatRoomModel.DoesNotExist:
                 serNum = 'B'
 
@@ -289,17 +289,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
             try:
                 data = json.loads(member_data)
             except ValueError:
-                # try:
                 data = json.loads(member_data.replace('\r', '\\r').replace('\n', '\\n'))
-                # except:
-                #
-                #     commont_tool.save_json('fault.json', request.data['strContext'], '/var/log/django/data/')
-        # data = request.data['strContext']
-        # try:
-        #     data = json.loads(data)
-        # except Exception,e:
-        #     commont_tool.save_json('member.json',data,'/var/log/django/data/member/')
-
         members = data['Data']
         chatroom_id = data['vcChatRoomSerialNo']
         return self.batch_create(request, members=members, chatroom_id=chatroom_id)
@@ -323,7 +313,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         """
         try:
             chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
-            serNum = chatroom_record.serNum
+            serNum = str(chatroom_record.serNum)
         except ChatRoomModel.DoesNotExist:
             serNum = 'B'
 
@@ -346,12 +336,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
 
         count = 0
         for member in members:
-            # try:
-            #     userinfo_raw = UserInfo.objects.using(db_wyeth_choice).filter(U_UserID=member['vcSerialNo'])
-            # except UserInfo.DoesNotExist:
-            #     django_log.info('未匹配到UserInfo [%s]数据' % (member['vcSerialNo']))
-            #     userinfo_raw = ''
-            userinfo_raws = UserInfo.objects.using(db_wyeth_choice).filter(U_UserID=member['vcSerialNo'])
+            userinfo_raws = UserInfo.objects.using(db_wyeth_choice).filter(U_UserID=member['vcSerialNo'],MatchGroup=roominfo_raw.RoomID)
             if userinfo_raws:
                 userinfo_raw = userinfo_raws.first()
             else:
@@ -456,7 +441,7 @@ class UnotityCallback(View):
 
         try:
             chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=room_id)
-            serNum = chatroom_record.serNum
+            serNum = str(chatroom_record.serNum)
         except ChatRoomModel.DoesNotExist:
             serNum = 'B'
 
