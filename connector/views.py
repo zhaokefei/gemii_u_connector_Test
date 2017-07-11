@@ -140,10 +140,12 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             if serNum == 'A':
                 db_gemii_choice = 'gemii'
                 db_wyeth_choice = 'wyeth'
+                member_log.info('选择A库')
             # TODo elif serNum=='B'
             else:
                 db_gemii_choice = 'gemii_b'
                 db_wyeth_choice = 'wyeth_b'
+                member_log.info('选择B库')
 
             try:
                 room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=u_roomid)
@@ -226,10 +228,12 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             if serNum == 'A':
                 db_gemii_choice = 'gemii'
                 db_wyeth_choice = 'wyeth'
+                member_log.info('选择A库')
             # TODo elif serNum=='B'
             else:
                 db_gemii_choice = 'gemii_b'
                 db_wyeth_choice = 'wyeth_b'
+                member_log.info('选择B库')
 
             try:
                 room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=u_roomid)
@@ -323,11 +327,12 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         if serNum == 'A':
             db_gemii_choice = 'gemii'
             db_wyeth_choice = 'wyeth'
+            member_log.info('选择A库')
         # TODo elif serNum=='B'
         else:
             db_gemii_choice = 'gemii_b'
             db_wyeth_choice = 'wyeth_b'
-
+            member_log.info('选择B库')
         try:
             roominfo_raw = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=chatroom_id)
         except WeChatRoomInfoGemii.DoesNotExist:
@@ -451,21 +456,24 @@ class UnotityCallback(View):
         if serNum == 'A':
             db_gemii_choice = 'gemii'
             db_wyeth_choice = 'wyeth'
+            member_log.info('选择A库')
         # TODo elif serNum=='B'
         else:
             db_gemii_choice = 'gemii_b'
             db_wyeth_choice = 'wyeth_b'
+            member_log.info('选择b库')
 
         try:
             room_record = WeChatRoomInfo.objects.using(db_wyeth_choice).get(U_RoomID=room_id)
         except WeChatRoomMemberInfo.DoesNotExist:
-            django_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(room_id)))
+            member_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(room_id)))
             return None
 
         userinfo_records = UserInfo.objects.using(db_wyeth_choice).filter(Openid=open_id, MatchGroup=room_record.RoomID)
 
         if userinfo_records.exists():
             userinfo_records.update(U_UserID=user_id, UserName=user_nickname)
+            member_log.info('更新usinfo信息,u_userid:%s,UserName:%s' % (str(user_id), str(user_nickname)))
             userinfo_record = userinfo_records.first()
 
             now = datetime.datetime.now()
@@ -485,7 +493,7 @@ class UnotityCallback(View):
             }
 
             UserStatus.objects.create(**user_status_parm)
-            django_log.info('成功插入UserStatus数据：%s' % user_status_parm)
+            member_log.info('成功插入UserStatus数据：%s' % user_status_parm)
             self.handle_member_enter_room(room_id, room_name, user_id, user_nickname, userinfo_record, user_head_img, db_wyeth_choice, db_gemii_choice)
         else:
             response = {'code': 1, 'msg': '未找到openid关联的用户'}
