@@ -492,7 +492,7 @@ class UnotityCallback(View):
                 'UserID': user_id,
                 'FriendStatus': '已确认好友',
                 'EnterGroupStatus': '已入群',
-                'FKUserInfoID': userinfo_record.id,
+                'userInfo': userinfo_record,
                 'FriendTime': now,
                 'ConfirmStatus': now,
                 'GroupTime': now,
