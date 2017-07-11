@@ -66,6 +66,7 @@ class UserStatus(models.Model):
     MatchGroup = models.CharField(max_length=255, null=True, blank=True)
     UserName = models.CharField(max_length=255, null=True, blank=True)
     Type = models.CharField(max_length=255, null=True, blank=True)
+    FriendTime = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'UserStatus'
