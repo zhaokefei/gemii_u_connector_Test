@@ -481,7 +481,7 @@ class UnotityCallback(View):
 
         try:
             room_record = WeChatRoomInfo.objects.using(db_wyeth_choice).get(U_RoomID=room_id)
-        except WeChatRoomMemberInfo.DoesNotExist:
+        except WeChatRoomInfo.DoesNotExist:
             member_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(room_id)))
             return None
 

@@ -379,3 +379,16 @@ def recive_msg_open(room_id):
     response = u_request.request()
     return response
 
+def room_over(vcChatRoomSerialNo=''):
+    api = 'Merchant.asmx/ChatRoomOver'
+    params = {
+        'MerchantNo': No,
+        'vcChatRoomSerialNo': vcChatRoomSerialNo,
+        'vcComment': 'test'
+    }
+    data = gen_data(params)
+    u_request = URequest()
+    u_request.api = api
+    u_request.data = data
+    response = u_request.request()
+    return response
