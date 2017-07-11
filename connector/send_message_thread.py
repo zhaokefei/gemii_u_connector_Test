@@ -58,9 +58,15 @@ class DataReceiveThread(threading.Thread):
             # 获取redis数据, 出错重启apache2
             if data['type'] == 'message':
                 robot_msg, send_msg = self.get_msg_data(data)
+                if not (robot_msg and send_msg):
+                    django_log.info('取数据时出错，进入下一条消息')
+                    continue
                 django_log.info('马上要进入由创接口调用')
                 # 调用由创接口，超时调用三次
                 response = self.send_message(**send_msg)
+                if not response:
+                    django_log.info('请求超时三次, 自动跳过该消息')
+                    continue
                 django_log.info('由创发送消息返回码------> %s' % str(response))
                 # 存数据至mysql
                 self.insert_msg_to_database(response, robot_msg)
@@ -103,6 +109,7 @@ class DataReceiveThread(threading.Thread):
             MsgId = ''.join(random.sample(CODE_STR, random.randint(20, 24)))
         except Exception, e:
             django_log.info('发送消息参数错误 %s ' % e)
+            return False, False
 
         robot_msg = {
             "Content": msgContent,
@@ -128,6 +135,7 @@ class DataReceiveThread(threading.Thread):
             django_log.info('获取到机器人编号')
         else:
             django_log.info('机器人编号记录不存在')
+            return False, False
 
         msgtype_map = {1: '2001', 2: '2002', 3: '2005'}
         send_msg = {
@@ -155,6 +163,7 @@ class DataReceiveThread(threading.Thread):
                 return self.send_message(release-1, **kwargs)
             else:
                 django_log.info('请求超时3次')
+                return False
 
         return response
 
