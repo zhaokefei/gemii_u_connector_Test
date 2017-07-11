@@ -531,6 +531,13 @@ class UnotityCallback(View):
             gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             gemii_data['MemberID'] = u_user_id
 
+            room_member = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=room_record.RoomID,
+                                                                                          U_UserID=u_user_id)
+            if room_member.exists():
+                member_log.info('roommember数据已存在（RoomID：%s,U_UserID:%s）' % (
+                    str(room_record.RoomID), str(u_user_id)))
+                return
+
             WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
             WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
 
