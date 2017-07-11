@@ -65,6 +65,7 @@ class ChatRoomView(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
 
     def create(self, request, *args, **kwargs):
+        django_log.info('open_room_success_callback')
         request_data = json.loads(request.data['strContext'])['Data']
         for data in request_data:
             u_roomid = data['vcChatRoomSerialNo']
@@ -80,6 +81,8 @@ class ChatRoomView(viewsets.ModelViewSet):
                 serializer = self.get_serializer(data=data)
                 if serializer.is_valid():
                     self.perform_create(serializer)
+            rsp = commont_tool.rece_msg(u_roomid)
+            django_log.info('rece_msg_rsp %s' % str(rsp))
         return HttpResponse('SUCCESS')
 
 class ChatMessageListView(viewsets.ModelViewSet):
@@ -99,11 +102,14 @@ class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
     serializer_class = IntoChatRoomMessageSerializer
 
     def create(self, request, *args, **kwargs):
+        django_log.info('robot_into_collback')
         request_data = json.loads(request.data['strContext'])['Data']
         for data in request_data:
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 self.perform_create(serializer)
+            rsp = commont_tool.open_room(data['vcSerialNo'])
+            django_log.info('u_open_room_rsp:%s' % str(rsp))
         return HttpResponse('SUCCESS')
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)

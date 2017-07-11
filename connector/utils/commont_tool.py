@@ -6,6 +6,11 @@ import os
 import json
 import datetime
 import time
+import logging
+from connector import apis
+
+message_log = logging.getLogger('message')
+
 
 def save_json(filename, data, dirName, mode='a'):
     """
@@ -31,3 +36,15 @@ def time_strf(time_str):
     datestr = time.strptime(time_str, '%Y/%m/%d %H:%M:%S')
     date_time = datestr[0:6]
     return datetime.datetime(*date_time)
+
+
+def open_room(vcSerialNo):
+    message_log.info('批量开群 %s' % str(vcSerialNo))
+    rsp = apis.open_chatroom(vcSerialNo)
+    return rsp
+
+def rece_msg(u_roomid):
+    # 激活消息处理
+    message_log.info('激活消息处理 %s' % str(u_roomid))
+    rsp = apis.recive_msg_open(u_roomid)
+    return rsp
