@@ -9,14 +9,18 @@ import json
 import urllib
 import requests
 from request import URequest, URequestVer2
+from django.conf import settings
 
-# 正式账户
+
+No = settings.No
+Sec = settings.Sec
+# # 正式账户
 # No = '201705051010001'
 # Sec = '201705051010001'
-# 测试账户
-
-No = '201706271010013'
-Sec = '201706271010013'
+# # 测试账户
+#
+# No = '201706271010013'
+# Sec = '201706271010013'
 
 def md5_args(arg_src):
     m = hashlib.md5()

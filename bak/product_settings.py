@@ -58,6 +58,9 @@ MIDDLEWARE = [
 
 ]
 
+No = '201705051010001'
+Sec = '201705051010001'
+
 ROOT_URLCONF = 'UConnector.urls'
 
 TEMPLATES = [
