@@ -663,8 +663,6 @@ class CreateRoomCallbackView(View):
             'data': room_info_list
         }
 
-        response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
-
         # TODO 写入数据到群信息表中
         # 根据task_id获取库编号
         try:
@@ -679,9 +677,12 @@ class CreateRoomCallbackView(View):
                 chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
                                          vcName=vcName, serNum=serNum, vcBase64Name=vcName)
                 chatroom.save()
+                django_log.info('write chatroom info')
                 # django_log.info('插入数据至群信息,群编号：%s, 群名: %s' % (str(vcChatRoomSerialNo), str(vcName)))
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
+
+        response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
 
         return HttpResponse('SUCCESS.')
 
@@ -689,6 +690,7 @@ class CreateRoomCallbackView(View):
 class ModifyRoomNameView(View):
     """由java调用修改群名称"""
     def modify_room_name(self, request):
+        django_log.info('进入修改群名接口回调')
         task_id = request.POST.get('task_id', False)
         chat_room_id = request.POST.get('chat_room_id', False)
         chat_room_name = request.POST.get('chat_room_name', False)
@@ -701,7 +703,24 @@ class ModifyRoomNameView(View):
         response = apis.modify_chatroom_info(
             task_id, chat_room_id, chat_room_name, create_time)
 
+        django_log.info('修改群名回调 %s' % str(response))
+
         modify_roomname_data = json.loads(response)
+        if str(modify_roomname_data['code']) == "0":
+
+            vcName = modify_roomname_data['data']['chat_room_name']
+
+            # TODO 写入数据到群信息表中
+            try:
+                chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chat_room_id)
+                chatroom_record.vcName = vcName
+                chatroom_record.save()
+                django_log.info('modify chatroom done')
+                # django_log.info('插入数据至群信息,群编号：%s, 群名: %s' % (str(vcChatRoomSerialNo), str(vcName)))
+            except RoomTask.DoesNotExist:
+                django_log.info('未找到任务编号')
+        else:
+            django_log.info('modify chatroom failed, chat_room_id --> %s' % str(chat_room_id))
 
         return modify_roomname_data
 

@@ -27,7 +27,7 @@ from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii
 # }
 django_log = logging.getLogger('django')
 
-msg_type_map = {'2001': 1, '2002': 47, '2005': 49, '2003': 34}
+msg_type_map = {'2001': 1, '2002': 47, '2005': 49, '2003': 34, '2007': 47}
 
 class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     Content = serializers.SerializerMethodField('get_content')
