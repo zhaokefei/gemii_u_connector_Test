@@ -31,8 +31,9 @@ DEBUG = True
 ALLOWED_HOSTS = ['54.223.198.95','mt.gemii.cc', 'localhost']
 # APPEND_SLASH = False
 
-No = '201706271010013'
-Sec = '201706271010013'
+NO = '201706271010013'
+SEC = '201706271010013'
+UC_AGENT = 'o1o-PwC2bydkk1iasqeHIuQswS2I'
 
 # Application definition
 

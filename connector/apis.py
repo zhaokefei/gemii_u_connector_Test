@@ -12,8 +12,8 @@ from request import URequest, URequestVer2
 from django.conf import settings
 
 
-No = settings.No
-Sec = settings.Sec
+No = settings.NO
+Sec = settings.SEC
 # # 正式账户
 # No = '201705051010001'
 # Sec = '201705051010001'

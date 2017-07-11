@@ -5,6 +5,7 @@ Created on 2017年5月25日
 @author: hepeng
 '''
 import requests
+from django.conf import settings
 
 class BaseRequest(object):
     def __init__(self, host, method, headers):
@@ -45,6 +46,6 @@ class URequestVer2(BaseRequest):
         host = 'http://schoolv2.17vsell.com/'
         method = method
         headers = {'content-type': 'application/json',
-                   'uc-agent': 'o1o-PwC2bydkk1iasqeHIuQswS2I',
+                   'uc-agent': settings.UC_AGENT,
                    }
         super(URequestVer2, self).__init__(host, method, headers)
