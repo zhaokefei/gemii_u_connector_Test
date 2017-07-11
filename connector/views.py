@@ -602,9 +602,13 @@ class CreateRoomTaskView(View):
             }
         }
 
+        django_log.info('创群返回参数 %s' % str(response))
+
         # TODO 获取java传过来的库编号，写入RoomTask中
         roomtask = RoomTask(serNum=serNum, task_id=task_id)
         roomtask.save()
+
+        django_log.info('存入库编号: %s , task_id: %s ' % (str(serNum), str(task_id)))
 
         return response
 
@@ -660,8 +664,9 @@ class CreateRoomCallbackView(View):
                 vcName = room_info['roomName']
 
                 chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
-                                         vcName=vcName, serNum=serNum)
+                                         vcName=vcName, serNum=serNum, vcBase64Name=vcName)
                 chatroom.save()
+                django_log.info('插入数据至群信息,群编号：%s, 群名: %s' % (str(vcChatRoomSerialNo), str(vcName)))
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
 
