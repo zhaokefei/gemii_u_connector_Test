@@ -27,7 +27,7 @@ from django.conf import settings
 from connector.utils import commont_tool
 
 
-from legacy_system.publish import pub_message,intochatroom, rece_msg
+from legacy_system.publish import pub_message
 # Create your views here.
 
 django_log = logging.getLogger('django')

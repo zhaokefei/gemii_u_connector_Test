@@ -69,18 +69,3 @@ def pub_message(sender, instance=None, created=False, **kwargs):
             django_log.info('用户发送消息，存储消息时出错，错误为: %s' % e.message)
 
 
-# 批量开群
-@receiver(post_save, sender=IntoChatRoomMessageModel)
-def intochatroom(sender, instance=None, created=False, **kwargs):
-    if created:
-        vcSerialNo = instance.vcSerialNo
-        django_log.info('批量开群 %s' % str(vcSerialNo))
-        apis.open_chatroom(vcSerialNo)
-
-# 激活消息处理
-@receiver(post_save, sender=ChatRoomModel)
-def rece_msg(sender, instance=None, created=False, **kwargs):
-    if created:
-        vcChatRoomSerialNo = instance.vcChatRoomSerialNo
-        django_log.info('激活消息处理 %s' % str(vcChatRoomSerialNo))
-        apis.recive_msg_open(vcChatRoomSerialNo)
