@@ -13,7 +13,7 @@ from django.http.response import HttpResponse
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView
-
+from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
     IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask
@@ -34,6 +34,7 @@ django_log = logging.getLogger('django')
 message_log = logging.getLogger('message')
 member_log = logging.getLogger('member')
 
+
 class UMessageView(GenericAPIView, mixins.CreateModelMixin):
     """
     由创回调数据基类
@@ -50,6 +51,7 @@ class UMessageView(GenericAPIView, mixins.CreateModelMixin):
             if serializer.is_valid():
                 self.perform_create(serializer)
 
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
         datas = json.loads(request.data['strContext'])['Data']
         if datas:
@@ -64,6 +66,7 @@ class ChatRoomView(viewsets.ModelViewSet):
     queryset = ChatRoomModel.objects.all()
     serializer_class = ChatRoomSerializer
 
+    @view_exception_handler
     def create(self, request, *args, **kwargs):
         django_log.info('open_room_success_callback')
         request_data = json.loads(request.data['strContext'])['Data']
@@ -89,6 +92,7 @@ class ChatMessageListView(viewsets.ModelViewSet):
     queryset = ChatMessageModel.objects.all()
     serializer_class = ChatMessageSerializer
 
+    @view_exception_handler
     def create(self, request, *args, **kwargs):
         try:
             request_data = json.loads(request.data['strContext'])['Data']
@@ -116,6 +120,8 @@ class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
             rsp = commont_tool.open_room(data['vcSerialNo'])
             django_log.info('u_open_room_rsp:%s' % str(rsp))
         return HttpResponse('SUCCESS')
+
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
@@ -210,7 +216,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
                 member_log.info('成功插入成员数据--u_userid(%s)入的群WeChatRoomInfo[%s]' % (str(u_userid), str(u_roomid)))
 
-
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
         datas = json.loads(request.data['strContext'])['Data']
         if datas:
@@ -272,6 +278,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
         member_log.info('成功处理退群成员（%s）个' % count)
 
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
         datas = json.loads(request.data['strContext'])['Data']
         if datas:
@@ -305,6 +312,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
 
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
         #
         import re
@@ -435,6 +443,7 @@ class GetUrobotQucode(View):
             response = {'code': 1, 'msg': '获取二维码失败'}
         return response
 
+    @view_exception_handler
     def post(self, request):
         response = self.get_urobot_qrcode(request)
         return HttpResponse(json.dumps(response), content_type="application/json")
@@ -553,6 +562,7 @@ class UnotityCallback(View):
             WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
             WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
 
+    @view_exception_handler
     def post(self, request):
         response = self.unotity_callback(request)
         return HttpResponse(json.dumps(response), content_type="application/json")
@@ -561,6 +571,7 @@ class UnotityCallback(View):
 
 class ChatRoomKickingView(View):
     """踢人处理"""
+    @view_exception_handler
     def get(self, request, *args, **kwargs):
         vcChatRoomSerialNo = request.GET['u_roomId']
         vcWxUserSerialNo = request.GET['u_userId']
@@ -630,7 +641,7 @@ class CreateRoomTaskView(View):
         django_log.info('存入库编号: %s , task_id: %s ' % (str(serNum), str(task_id)))
 
         return response
-
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
         response = self.create_room_task(request, *args, **kwargs)
         return HttpResponse(json.dumps(response, ensure_ascii=False),
@@ -639,6 +650,7 @@ class CreateRoomTaskView(View):
 
 class CreateRoomCallbackView(View):
     """建群信息回调并返回信息给java"""
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
 
         task_id = request.POST.get('task_id', False)
@@ -730,6 +742,7 @@ class ModifyRoomNameView(View):
 
         return modify_roomname_data
 
+    @view_exception_handler
     def post(self, request, *args, **kwargs):
         response  = self.modify_room_name(request)
         return HttpResponse(json.dumps(response), content_type="application/json")

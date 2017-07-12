@@ -208,10 +208,21 @@ LOGGING = {
         },
     },
     'handlers': {
+        'view': {
+            'handlers': ['view_error_handler'],
+            'level': 'INFO',
+            'propagate': True,
+        },
         'console': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
+        },
+        'view_error_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/view.error.log',
+            'formatter': 'verbose',
         },
         'info_handler': {
             'level': 'DEBUG',
