@@ -94,15 +94,11 @@ class ChatMessageListView(viewsets.ModelViewSet):
 
     @view_exception_handler
     def create(self, request, *args, **kwargs):
-        try:
-            request_data = json.loads(request.data['strContext'])['Data']
-            for data in request_data:
-                serializer = self.get_serializer(data=data)
-                if serializer.is_valid():
-                    self.perform_create(serializer)
-        except Exception, e:
-            django_log.info('chatroom message callback error %s' % e.message)
-            django_log.info(request.data)
+        request_data = json.loads(request.data['strContext'])['Data']
+        for data in request_data:
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                self.perform_create(serializer)
 
         return HttpResponse('SUCCESS')
 
