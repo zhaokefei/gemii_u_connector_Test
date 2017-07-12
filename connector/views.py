@@ -25,7 +25,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
 
 from django.conf import settings
 from connector.utils import commont_tool
-
+from django.db import transaction
 
 from legacy_system.publish import pub_message
 # Create your views here.
@@ -322,6 +322,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         chatroom_id = data['vcChatRoomSerialNo']
         return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
+    @transaction.atomic()
     def handle_member_room(self, members, chatroom_id):
         """
         参数	说明
