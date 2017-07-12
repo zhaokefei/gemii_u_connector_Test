@@ -15,11 +15,15 @@ def view_exception_handler(view_func):
     view异常处理
     """
 
-    def wrapped_view(*args, **kwargs):
+    def wrapped_view(self,request,*args, **kwargs):
 
         try:
-            return view_func(*args, **kwargs)
-        except Exception:
+            return view_func(self,request,*args, **kwargs)
+        except Exception,e:
+            if 'strContext' in request.data:
+                datas = request.data['strContext']
+                view_log.info('accept strContext data:')
+                view_log.info(datas)
             view_log.info(traceback.format_exc())
             return HttpResponse('SUCCESS')
 
