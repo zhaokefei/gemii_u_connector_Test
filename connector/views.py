@@ -827,14 +827,14 @@ class OpenKickingView(View):
             elif ayd == 'close':
                 tickCfg.set_ayd(False)
 
-            if ayd == 'open':
+            if msj == 'open':
                 tickCfg.set_msj(True)
-            elif ayd == 'close':
+            elif msj == 'close':
                 tickCfg.set_msj(False)
 
-            if ayd == 'open':
+            if wyeth == 'open':
                 tickCfg.set_wyeth(True)
-            elif ayd == 'close':
+            elif wyeth == 'close':
                 tickCfg.set_wyeth(False)
 
             return HttpResponse('成功!')
