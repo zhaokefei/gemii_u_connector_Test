@@ -10,7 +10,7 @@ from rest_framework.routers import DefaultRouter
 from .views import ChatMessageListView, URobotView, \
 ChatRoomView, IntoChatRoomMessageCreateView, IntoChatRoomCreateView,\
 DropOutChatRoomCreateView, MemberInfoCreateView, GetUrobotQucode, UnotityCallback, CreateRoomTaskView, \
-ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView
+ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView, OpenKickingView, ShowKickingView
 from django.views.decorators.csrf import csrf_exempt
 
 router = DefaultRouter()
@@ -32,5 +32,7 @@ urlpatterns += [
     url(r'^createroomtask/$', csrf_exempt(CreateRoomTaskView.as_view()), name="createroomtask"),
     url(r'^kickingchatroom/$', csrf_exempt(ChatRoomKickingView.as_view()), name='kickingmember'),
     url(r'^createroomdone/$', csrf_exempt(CreateRoomCallbackView.as_view()), name='createroomdone'),
-    url(r'^modifyroomname/$', csrf_exempt(ModifyRoomNameView.as_view()), name='modifyroomname')
-    ]
+    url(r'^modifyroomname/$', csrf_exempt(ModifyRoomNameView.as_view()), name='modifyroomname'),
+    url(r'^kickingtask/$', csrf_exempt(OpenKickingView.as_view()), name='kickingtask'),
+    url(r'^showtask/$', csrf_exempt(ShowKickingView.as_view()), name='showtask'),
+]

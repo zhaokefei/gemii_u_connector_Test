@@ -1,0 +1,12 @@
+{% extends "_base.html" %}
+
+
+{% block content %}
+
+    <form action="{% url 'kickingtask' %}" method="post">
+        {% csrf_token %}
+        {{ kicking_form }}
+        <input type="submit" value="Submit" />
+    </form>
+
+{% endblock content %}

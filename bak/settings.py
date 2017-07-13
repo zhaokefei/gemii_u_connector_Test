@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'connector',
     'wechat',
     'wyeth',
+    'django_crontab',
     'legacy_system',
     'rest_framework',
 ]
@@ -67,7 +68,7 @@ ROOT_URLCONF = 'UConnector.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,6 +83,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'UConnector.wsgi.application'
 
+
+CRONJOBS = [
+    ('47 11 * * *', 'django.core.management.call_command', ['schedule_task']),
+]
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -278,6 +283,18 @@ LOGGING = {
             'filename': '/var/log/django/member.error.log',
             'formatter': 'verbose',
         },
+        'kicking_handle': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/kicking.info.log',
+            'formatter': 'verbose',
+        },
+        'kicking_error_handler': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/kicking.error.log',
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'view': {
@@ -312,6 +329,11 @@ LOGGING = {
         },
         'member': {
             'handlers': ['member_handler', 'member_error_handler'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'kicking': {
+            'handlers': ['kicking_handle', 'kicking_error_handler'],
             'level': 'INFO',
             'propagate': True,
         },

@@ -8,6 +8,7 @@ import requests
 import logging
 import copy
 from django.views.generic import View
+from django.shortcuts import render
 
 from django.http.response import HttpResponse
 from rest_framework import mixins
@@ -23,6 +24,8 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
     DropOutChatRoomSerializer, MemberInfoSerializer
 
+from connector.forms import KickingForm
+
 from django.conf import settings
 from connector.utils import commont_tool
 from django.db import transaction
@@ -33,6 +36,10 @@ from legacy_system.publish import pub_message
 django_log = logging.getLogger('django')
 message_log = logging.getLogger('message')
 member_log = logging.getLogger('member')
+
+AYD = False
+MSJ = False
+WYETH = False
 
 
 class UMessageView(GenericAPIView, mixins.CreateModelMixin):
@@ -207,6 +214,24 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
                 gemii_data['MemberID'] = u_userid
                 gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+                global AYD
+                global MSJ
+                global WYETH
+
+                if not user_record:
+                    if (AYD and room_record.owner == 'aiyingdao') or \
+                            (MSJ and room_record.owner == 'meisujiaer') or \
+                            (WYETH and room_record.owner == 'wyeth'):
+                        response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+
+                        data = json.loads(response)
+                        if data['nResult'] == 1:
+                            member_log.info('私拉踢人已打开，%s 用户已被移出 群 %s' % (str(u_userid), str(u_roomid)))
+                        else:
+                            member_log.info('私拉踢人已打开，由创返回码错误 %s' % str(response))
+
+                        continue
 
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
@@ -743,3 +768,57 @@ class ModifyRoomNameView(View):
         response  = self.modify_room_name(request)
         return HttpResponse(json.dumps(response), content_type="application/json")
 
+class OpenKickingView(View):
+    def get(self, request):
+        kicking_form = KickingForm()
+        return render(request, 'kicking_task.html', {'kicking_form': kicking_form})
+
+    def post(self, request):
+        kicking_form = KickingForm(request.POST)
+        if kicking_form.is_valid():
+            global AYD
+            global MSJ
+            global WYETH
+            ayd = request.POST.get('ayd_task', 'close')
+            msj = request.POST.get('msj_task', 'close')
+            wyeth = request.POST.get('wyeth_task', 'close')
+            if ayd == 'open':
+                AYD = True
+            elif ayd == 'close':
+                AYD = False
+
+            if msj == 'open':
+                MSJ = True
+            elif msj == 'close':
+                MSJ = False
+
+            if wyeth == 'open':
+                WYETH = True
+            elif wyeth == 'close':
+                WYETH = False
+
+            return HttpResponse('成功!')
+        return render(request, 'kicking_task.html', {'kicking_form': kicking_form})
+
+class ShowKickingView(View):
+    def get(self, request):
+        global AYD
+        global MSJ
+        global WYETH
+
+        if AYD == True:
+            ayd = "私拉踢人已开通"
+        elif AYD == False:
+            ayd = "私拉踢人未开通"
+
+        if MSJ == True:
+            msj = "私拉踢人已开通"
+        elif MSJ == False:
+            msj = "私拉踢人未开通"
+
+        if WYETH == True:
+            wyeth = "私拉踢人已开通"
+        elif WYETH == False:
+            wyeth = "私拉踢人未开通"
+
+        return render(request, 'show_task.html', {'ayd': ayd, 'msj': msj, 'wyeth': wyeth})
