@@ -387,7 +387,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         chatroom_id = data['vcChatRoomSerialNo']
         return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
-    @transaction.atomic()
+    # @transaction.atomic()
     def handle_member_room(self, members, chatroom_id):
         """
         参数	说明
