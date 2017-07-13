@@ -41,7 +41,12 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     UserNickName = serializers.SerializerMethodField('get_nickname')
     MemberIcon = serializers.SerializerMethodField('get_mermer_icon')
 
+    _db_gemii_choice = None
+    _info = None
+
     def get_sernum(self, obj):
+        if self._db_gemii_choice:
+            return self._db_gemii_choice
         chatroom_id = str(obj.vcChatRoomSerialNo)
         key = 'ChatRoomModel_db_gemii_choice:{vcChatRoomSerialNo}'.format(vcChatRoomSerialNo=chatroom_id)
         db_gemii_choice = cache.get(key)
@@ -59,7 +64,8 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
                 db_gemii_choice = 'gemii_b'
 
             cache.set(key, db_gemii_choice)
-        return db_gemii_choice
+            self._db_gemii_choice = db_gemii_choice
+        return self._db_gemii_choice
 
     def get_content(self, obj):
         if msg_type_map.get(str(obj.nMsgType), None) is None:
@@ -72,6 +78,24 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
 
     def get_app_msg_type(self, obj):
         return 0
+
+    def _get_member_info(self, room_id, user_id, db_gemii_choice):
+        if self._info:
+            return self._info['item']
+        key = 'wechatroommemberinfo_data:{room_id}:{user_id}'.format(room_id=room_id,
+                                                                      user_id=user_id)
+        data = cache.get(key)
+        if not data:
+            data = {
+                'item': None,
+            }
+            try:
+                data['item'] = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).get(U_UserID=user_id, RoomID=room_id)
+            except WeChatRoomMemberInfoGemii.DoesNotExist:
+                pass
+            cache.set(key, data)
+        self._info = data
+        return self._info['item']
 
     def get_room_id(self, obj):
         db_gemii_choice = self.get_sernum(obj)
@@ -92,53 +116,23 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
         u_userid = str(obj.vcFromWxUserSerialNo)
         db_gemii_choice = self.get_sernum(obj)
         room_id = self.get_room_id(obj)
-        key = 'wechatroommemberinfo_memberid:{room_id}:{u_userid}'.format(room_id=room_id, u_userid=u_userid)
-        member_id = cache.get(key)
-        if not member_id:
-            try:
-                member_record = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).get(U_UserID=u_userid, RoomID=room_id)
-                member_id = member_record.MemberID
-            except WeChatRoomMemberInfoGemii.DoesNotExist:
-                member_id = ""
-
-            cache.set(key, member_id)
-
-        return member_id
+        info = self._get_member_info(room_id, u_userid, db_gemii_choice)
+        return info.MemberID if info else ""
 
     def get_nickname(self, obj):
         u_userid = str(obj.vcFromWxUserSerialNo)
         room_id = self.get_room_id(obj)
         db_gemii_choice = self.get_sernum(obj)
-        key = 'wechatroommemberinfo_username:{u_userid}'.format(u_userid=u_userid)
-        user_nickname = cache.get(key)
-        if not user_nickname:
-            try:
-                nickname_record = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).get(U_UserID=u_userid, RoomID=room_id)
-                user_nickname = nickname_record.NickName
-            except WeChatRoomMemberInfoGemii.DoesNotExist:
-                user_nickname = ""
-
-            cache.set(key, user_nickname)
-
-        return user_nickname
+        info = self._get_member_info(room_id,u_userid,db_gemii_choice)
+        return info.NickName if info else ""
 
     def get_mermer_icon(self, obj):
         room_id = self.get_room_id(obj)
         u_userid = str(obj.vcFromWxUserSerialNo)
         db_gemii_choice = self.get_sernum(obj)
-        # cache
-        key = 'wechatroommemberinfo_membericon:{room_id}:{u_userid}'.format(room_id=room_id, u_userid=u_userid)
-        member_icon = cache.get(key)
-        if not member_icon:
-            try:
-                member_icon_record = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).get(U_UserID=u_userid, RoomID=room_id)
-                member_icon = member_icon_record.member_icon
-            except WeChatRoomMemberInfoGemii.DoesNotExist:
-                member_icon = ""
+        info = self._get_member_info(room_id,u_userid,db_gemii_choice)
+        return info.member_icon if info else ""
 
-            cache.set(key, member_icon)
-
-        return member_icon
 
     def get_creat_time(self, obj):
         return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
