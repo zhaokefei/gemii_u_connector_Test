@@ -43,18 +43,22 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
 
     def get_sernum(self, obj):
         chatroom_id = str(obj.vcChatRoomSerialNo)
-        try:
-            chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
-            serNum = chatroom_record.serNum
-        except ChatRoomModel.DoesNotExist:
-            serNum = 'B'
+        key = 'ChatRoomModel_db_gemii_choice:{vcChatRoomSerialNo}'.format(vcChatRoomSerialNo=chatroom_id)
+        db_gemii_choice = cache.get(key)
+        if not db_gemii_choice:
+            try:
+                chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+                serNum = chatroom_record.serNum
+            except ChatRoomModel.DoesNotExist:
+                serNum = 'B'
 
-        if serNum == 'A':
-            db_gemii_choice = 'gemii'
-        # TODo elif serNum=='B'
-        else:
-            db_gemii_choice = 'gemii_b'
+            if serNum == 'A':
+                db_gemii_choice = 'gemii'
+            # TODo elif serNum=='B'
+            else:
+                db_gemii_choice = 'gemii_b'
 
+            cache.set(key, db_gemii_choice)
         return db_gemii_choice
 
     def get_content(self, obj):
