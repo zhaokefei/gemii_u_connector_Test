@@ -776,12 +776,17 @@ class OpenKickingView(View):
     def post(self, request):
         kicking_form = KickingForm(request.POST)
         if kicking_form.is_valid():
+            member_log.info('私拉踢人接口调用')
+
             global AYD
             global MSJ
             global WYETH
             ayd = request.POST.get('ayd_task', 'close')
             msj = request.POST.get('msj_task', 'close')
             wyeth = request.POST.get('wyeth_task', 'close')
+
+            member_log.info('爱婴岛状态: %s, 美素佳儿状态: %s, 惠氏状态: %s' % (str(ayd), str(msj), str(wyeth)))
+
             if ayd == 'open':
                 AYD = True
             elif ayd == 'close':

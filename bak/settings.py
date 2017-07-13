@@ -277,18 +277,7 @@ LOGGING = {
             'filename': '/var/log/django/member.error.log',
             'formatter': 'verbose',
         },
-        'kicking_handle': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/kicking.info.log',
-            'formatter': 'verbose',
-        },
-        'kicking_error_handler': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/kicking.error.log',
-            'formatter': 'verbose',
-        },
+
     },
     'loggers': {
         'view': {
@@ -323,11 +312,6 @@ LOGGING = {
         },
         'member': {
             'handlers': ['member_handler', 'member_error_handler'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'kicking': {
-            'handlers': ['kicking_handle', 'kicking_error_handler'],
             'level': 'INFO',
             'propagate': True,
         },
