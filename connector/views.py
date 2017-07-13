@@ -13,6 +13,7 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 from rest_framework import mixins
 from rest_framework import viewsets
+from django.core.cache import cache
 from rest_framework.generics import GenericAPIView
 from decorate import view_exception_handler
 from connector import apis
@@ -37,9 +38,34 @@ django_log = logging.getLogger('django')
 message_log = logging.getLogger('message')
 member_log = logging.getLogger('member')
 
-AYD = False
-MSJ = False
-WYETH = False
+
+class Tick(object):
+    def _get_cache_key(self, key):
+        return 'TICK:{key}'.format(key=key)
+
+    def _get_cache(self, key):
+        return cache.get(self._get_cache_key(key))
+
+    def _set_cache(self, key, value):
+        cache.set(self._get_cache_key(key), value, timeout=None)
+
+    def get_ayd(self):
+        return self._get_cache('ayd')
+
+    def set_ayd(self, value):
+        self._set_cache('ayd', value)
+
+    def get_msj(self):
+        return self._get_cache('msj')
+
+    def set_msj(self, value):
+        self._set_cache('msj', value)
+
+    def get_wyeth(self):
+        return self._get_cache('wyeth')
+
+    def set_wyeth(self, value):
+        self._set_cache('wyeth', value)
 
 
 class UMessageView(GenericAPIView, mixins.CreateModelMixin):
@@ -215,18 +241,18 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 gemii_data['MemberID'] = u_userid
                 gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-                global AYD
-                global MSJ
-                global WYETH
+                tickCfg = Tick()
+                ayd_task = tickCfg.get_ayd()
+                msj_task = tickCfg.get_msj()
+                wyeth_task = tickCfg.get_wyeth()
 
-                member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(AYD), str(MSJ), str(WYETH)))
-
+                member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
 
                 if not user_record:
                     member_log.info('私拉用户 %s' % str(u_userid))
-                    if (AYD and str(room_record.owner) == 'aiyingdao') or \
-                            (MSJ and str(room_record.owner) == 'meisujiaer') or \
-                            (WYETH and str(room_record.owner) == 'wyeth'):
+                    if (ayd_task and str(room_record.owner) == 'aiyingdao') or \
+                            (msj_task and str(room_record.owner) == 'meisujiaer') or \
+                            (wyeth_task and str(room_record.owner) == 'wyeth'):
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
                         member_log.info('进入踢人代码.')
                         data = json.loads(response)
@@ -782,52 +808,53 @@ class OpenKickingView(View):
         if kicking_form.is_valid():
             member_log.info('私拉踢人接口调用')
 
-            global AYD
-            global MSJ
-            global WYETH
             ayd = request.POST.get('ayd_task', 'close')
             msj = request.POST.get('msj_task', 'close')
             wyeth = request.POST.get('wyeth_task', 'close')
 
             member_log.info('爱婴岛状态: %s, 美素佳儿状态: %s, 惠氏状态: %s' % (str(ayd), str(msj), str(wyeth)))
 
+            tickCfg = Tick()
+
             if ayd == 'open':
-                AYD = True
+                tickCfg.set_ayd(True)
             elif ayd == 'close':
-                AYD = False
+                tickCfg.set_ayd(False)
 
-            if msj == 'open':
-                MSJ = True
-            elif msj == 'close':
-                MSJ = False
+            if ayd == 'open':
+                tickCfg.set_msj(True)
+            elif ayd == 'close':
+                tickCfg.set_msj(False)
 
-            if wyeth == 'open':
-                WYETH = True
-            elif wyeth == 'close':
-                WYETH = False
+            if ayd == 'open':
+                tickCfg.set_wyeth(True)
+            elif ayd == 'close':
+                tickCfg.set_wyeth(False)
 
             return HttpResponse('成功!')
         return render(request, 'kicking_task.html', {'kicking_form': kicking_form})
 
 class ShowKickingView(View):
     def get(self, request):
-        global AYD
-        global MSJ
-        global WYETH
+        tickCfg = Tick()
 
-        if AYD == True:
-            ayd = "私拉踢人已开通"
-        elif AYD == False:
-            ayd = "私拉踢人未开通"
+        ayd = tickCfg.get_ayd()
+        msj = tickCfg.get_msj()
+        wyeth = tickCfg.get_wyeth()
 
-        if MSJ == True:
-            msj = "私拉踢人已开通"
-        elif MSJ == False:
-            msj = "私拉踢人未开通"
+        if ayd == True:
+            ayd_task = "私拉踢人已开通"
+        elif ayd == False:
+            ayd_task = "私拉踢人未开通"
 
-        if WYETH == True:
-            wyeth = "私拉踢人已开通"
-        elif WYETH == False:
-            wyeth = "私拉踢人未开通"
+        if msj == True:
+            msj_task = "私拉踢人已开通"
+        elif msj == False:
+            msj_task = "私拉踢人未开通"
 
-        return render(request, 'show_task.html', {'ayd': ayd, 'msj': msj, 'wyeth': wyeth})
+        if wyeth == True:
+            wyeth_task = "私拉踢人已开通"
+        elif wyeth == False:
+            wyeth_task = "私拉踢人未开通"
+
+        return render(request, 'show_task.html', {'ayd': ayd_task, 'msj': msj_task, 'wyeth': wyeth_task})
