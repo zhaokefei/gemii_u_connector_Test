@@ -10,6 +10,7 @@ class WeChatRoomInfo(models.Model):
     RoomID = models.CharField(max_length=100, primary_key=True)
     U_RoomID = models.CharField(max_length=255, null=True, blank=True)
     RoomName = models.CharField(max_length=255, null=True, blank=True)
+    owner = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'WeChatRoomInfo'
