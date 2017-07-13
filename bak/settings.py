@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'connector',
     'wechat',
     'wyeth',
-    'django_crontab',
     'legacy_system',
     'rest_framework',
 ]
@@ -82,11 +81,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'UConnector.wsgi.application'
-
-
-CRONJOBS = [
-    ('47 11 * * *', 'django.core.management.call_command', ['schedule_task']),
-]
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
