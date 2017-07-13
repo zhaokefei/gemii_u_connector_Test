@@ -246,28 +246,20 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 msj_task = tickCfg.get_msj()
                 wyeth_task = tickCfg.get_wyeth()
 
-                member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
 
                 if not user_record:
-                    member_log.info('私拉用户 %s, 群%s' % (str(u_userid), str(u_roomid)))
-                    member_log.info(str(room_record.owner))
                     if (ayd_task and str(room_record.owner) == 'aiyingdao') or \
                             (msj_task and str(room_record.owner) == 'meisujiaer') or \
                             (wyeth_task and str(room_record.owner) == 'wyeth'):
-                        member_log.info('kaishi tiren')
+                        member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
-                        member_log.info('进入踢人代码')
                         data = json.loads(response)
-                        if data['nResult'] == 1:
-                            member_log.info('私拉踢人已打开，%s 用户已被移出 群 %s' % (str(u_userid), str(u_roomid)))
+                        if str(data['nResult']) == "1":
+                            member_log.info('私拉踢人已打开，%s 用户已被移出群 %s' % (str(u_userid), str(u_roomid)))
                         else:
-                            member_log.info('私拉踢人已打开，由创返回码错误 %s' % str(response))
+                            member_log.info('私拉踢人已打开，由创返回码 %s' % str(response))
 
                         continue
-
-                    member_log.info("踢人越过")
-
-                member_log.info("准备村数据")
 
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
