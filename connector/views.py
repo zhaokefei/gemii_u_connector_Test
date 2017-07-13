@@ -219,12 +219,16 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 global MSJ
                 global WYETH
 
-                if not user_record:
-                    if (AYD and room_record.owner == 'aiyingdao') or \
-                            (MSJ and room_record.owner == 'meisujiaer') or \
-                            (WYETH and room_record.owner == 'wyeth'):
-                        response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+                member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(AYD), str(MSJ), str(WYETH)))
 
+
+                if not user_record:
+                    member_log.info('私拉用户 %s' % str(u_userid))
+                    if (AYD and str(room_record.owner) == 'aiyingdao') or \
+                            (MSJ and str(room_record.owner) == 'meisujiaer') or \
+                            (WYETH and str(room_record.owner) == 'wyeth'):
+                        response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+                        member_log.info('进入踢人代码.')
                         data = json.loads(response)
                         if data['nResult'] == 1:
                             member_log.info('私拉踢人已打开，%s 用户已被移出 群 %s' % (str(u_userid), str(u_roomid)))
