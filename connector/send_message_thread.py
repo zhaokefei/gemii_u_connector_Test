@@ -102,7 +102,6 @@ class DataReceiveThread(threading.Thread):
             nMsgType = request_data['MsgType']
             vcWeixinSerialNo = ','.join(msg_data['memberIds'])
             msgContent = msg_data['Content']
-            FileName = msg_data['FileName']
             RoomID = msg_data['RoomID']
             UserNickName = msg_data['UserNickName']
             CreateTime = time.strftime('%Y-%m-%d %H:%M:%S')
@@ -111,9 +110,19 @@ class DataReceiveThread(threading.Thread):
             django_log.info('发送消息参数错误 %s ' % e)
             return False, False
 
+        link = {}
+        if nMsgType == 3:
+            card_link = msgContent.split('#$#')
+            link['vcTitle'] = card_link[0]
+            link['vcDesc'] = card_link[1]
+            link['vcHref'] = card_link[2]
+            link['msgContent'] = card_link[2]
+        # 发送给java的类型转换
+        robot_type = {2: 47, 3: 50, 1: 1}
+        # 发送给java的数据
         robot_msg = {
             "Content": msgContent,
-            "MsgType": 47 if nMsgType == 2 else nMsgType,
+            "MsgType": robot_type.get(nMsgType),
             "AppMsgType": 0,
             "UserDisplayName": UserNickName,
             "MsgId": MsgId,
@@ -125,9 +134,7 @@ class DataReceiveThread(threading.Thread):
 
         django_log.info('生成发送给java的数据-----------> %s' % robot_msg)
 
-        django_log.info('开始导入Chatroommodel')
         from models import ChatRoomModel
-        django_log.info('导入Chatroommodel成功')
         record = ChatRoomModel.objects.filter(vcChatRoomSerialNo=vcChatRoomSerialNo)
         django_log.info('开始通过群编号查找对应的机器人')
         if record.exists():
@@ -136,17 +143,19 @@ class DataReceiveThread(threading.Thread):
         else:
             django_log.info('机器人编号记录不存在')
             return False, False
-
+        # 生成发送给由创的数据类型
         msgtype_map = {1: '2001', 2: '2002', 3: '2005'}
+        # 发送给由创的消息
         send_msg = {
             'vcChatRoomSerialNo': vcChatRoomSerialNo,
             'vcRobotSerialNo': vcRobotSerialNo,
             'nIsHit': nIsHit,
             'vcWeixinSerialNo': vcWeixinSerialNo,
             'nMsgType': msgtype_map.get(int(nMsgType)),
-            'msgContent': msgContent,
-            'vcTitle': FileName,
-            'vcHref': msgContent.encode('utf8')
+            'msgContent': link.get('msgContent', msgContent),
+            'vcTitle': link.get("vcTitle", ""),
+            'vcDesc': link.get("vcDesc", ""),
+            'vcHref': link.get("vcHref", "")
         }
 
         return robot_msg, send_msg

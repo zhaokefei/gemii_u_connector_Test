@@ -7,9 +7,10 @@ import datetime
 import requests
 import logging
 import copy
+
 from django.views.generic import View
 from django.shortcuts import render
-
+from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -621,10 +622,16 @@ class ChatRoomKickingView(View):
     def get(self, request, *args, **kwargs):
         vcChatRoomSerialNo = request.GET['u_roomId']
         vcWxUserSerialNo = request.GET['u_userId']
+        member_log.info('java调用踢人接口, 群 %s 用户 %s' % (str(vcChatRoomSerialNo), str(vcWxUserSerialNo)))
         response = apis.chatroom_kicking(vcRelationSerialNo="",
                                          vcChatRoomSerialNo=vcChatRoomSerialNo,
                                          vcWxUserSerialNo=vcWxUserSerialNo,
                                          vcComment="test")
+        kicking_data = json.loads(response)
+        if str(kicking_data['nResult']) == "1":
+            member_log.info('踢人接口调用成功')
+        else:
+            member_log.info('由创踢人返回码错误 %s' % str(response))
         return HttpResponse(response, content_type="application/json")
 
 
@@ -741,8 +748,7 @@ class CreateRoomCallbackView(View):
                 chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
                                          vcName=vcName, serNum=serNum, vcBase64Name=vcName)
                 chatroom.save()
-                django_log.info('write chatroom info')
-                # django_log.info('插入数据至群信息,群编号：%s, 群名: %s' % (str(vcChatRoomSerialNo), str(vcName)))
+                django_log.info('插入数据至群信息')
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
 
@@ -779,8 +785,7 @@ class ModifyRoomNameView(View):
                 chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chat_room_id)
                 chatroom_record.vcName = vcName
                 chatroom_record.save()
-                django_log.info('modify chatroom done')
-                # django_log.info('插入数据至群信息,群编号：%s, 群名: %s' % (str(vcChatRoomSerialNo), str(vcName)))
+                django_log.info('修改群信息表中的群名')
             except RoomTask.DoesNotExist:
                 django_log.info('未找到任务编号')
         else:
@@ -826,7 +831,7 @@ class OpenKickingView(View):
             elif wyeth == 'close':
                 tickCfg.set_wyeth(False)
 
-            return HttpResponse('成功!')
+            return HttpResponseRedirect('/connector/showtask/')
         return render(request, 'kicking_task.html', {'kicking_form': kicking_form})
 
 class ShowKickingView(View):

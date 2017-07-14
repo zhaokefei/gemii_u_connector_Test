@@ -55,9 +55,9 @@ def send_chat_message(vcChatRoomSerialNo='',
             {
                 'nMsgType': str(nMsgType),
                 'msgContent': msgContent.encode('utf-8'),
-                'vcTitle': str(vcTitle),
-                'vcDesc': str(vcDesc),
-                'vcHref': str(vcHref),
+                'vcTitle': vcTitle.encode('utf-8'),
+                'vcDesc': vcDesc.encode('utf-8'),
+                'vcHref': vcHref.encode('utf-8'),
                 'nVoiceTime': str(nVoiceTime)}
             ]
         }
