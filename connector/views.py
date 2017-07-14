@@ -86,7 +86,7 @@ class UMessageView(GenericAPIView, mixins.CreateModelMixin):
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
-        datas = json.loads(request.data['strContext'])['Data']
+        datas = json.loads(request.data['strContext'],strict=False)['Data']
         if datas:
             self.batch_create(request, datas=datas, *args, **kwargs)
         return HttpResponse('SUCCESS')
@@ -102,7 +102,7 @@ class ChatRoomView(viewsets.ModelViewSet):
     @view_exception_handler
     def create(self, request, *args, **kwargs):
         django_log.info('open_room_success_callback')
-        request_data = json.loads(request.data['strContext'])['Data']
+        request_data = json.loads(request.data['strContext'], strict=False)['Data']
         for data in request_data:
             u_roomid = data['vcChatRoomSerialNo']
             try:
@@ -127,7 +127,7 @@ class ChatMessageListView(viewsets.ModelViewSet):
 
     @view_exception_handler
     def create(self, request, *args, **kwargs):
-        request_data = json.loads(request.data['strContext'])['Data']
+        request_data = json.loads(request.data['strContext'], strict=False)['Data']
         for data in request_data:
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
@@ -140,7 +140,7 @@ class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
     serializer_class = IntoChatRoomMessageSerializer
     def create(self, request, *args, **kwargs):
         django_log.info('robot_into_collback')
-        request_data = json.loads(request.data['strContext'])['Data']
+        request_data = json.loads(request.data['strContext'], strict=False)['Data']
         for data in request_data:
             state = 0
             try:
@@ -275,7 +275,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
-        datas = json.loads(request.data['strContext'])['Data']
+        datas = json.loads(request.data['strContext'], strict=False)['Data']
         if datas:
             self.batch_create(request, datas=datas, *args, **kwargs)
         return HttpResponse('SUCCESS')
@@ -337,7 +337,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
-        datas = json.loads(request.data['strContext'])['Data']
+        datas = json.loads(request.data['strContext'], strict=False)['Data']
         if datas:
             self.batch_create(request, datas=datas, *args, **kwargs)
         return HttpResponse('SUCCESS')
@@ -370,18 +370,8 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
-        #
-        import re
-        regex = re.compile(r'\\(?![/u"])')
-        fixed = regex.sub(r"\\\\", request.data['strContext'])
-        try:
-            data = json.loads(fixed)
-        except ValueError:
-            member_data = fixed.replace('\\', '\\\\')
-            try:
-                data = json.loads(member_data)
-            except ValueError:
-                data = json.loads(member_data.replace('\r', '\\r').replace('\n', '\\n'))
+
+        data = json.loads(request.data['strContext'], strict=False)
         members = data['Data']
         chatroom_id = data['vcChatRoomSerialNo']
         return self.batch_create(request, members=members, chatroom_id=chatroom_id)
