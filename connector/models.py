@@ -9,7 +9,7 @@ class URobotModel(models.Model):
     # 由创定义属性
     vcSerialNo = models.CharField(max_length=50, unique=True, verbose_name=u'助手编号')
     nChatRoomCount = models.CharField(max_length=5, verbose_name=u'入群数')
-    vcNickName = models.CharField(max_length=20, verbose_name=u'助手昵称')
+    vcNickName = models.CharField(max_length=100, verbose_name=u'助手昵称')
     vcBase64NickName = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'助手base64昵称')
     vcHeadImages = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'助手头像')
     vcCodeImages = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'助手二维码')
@@ -66,11 +66,13 @@ class IntoChatRoomMessageModel(models.Model):
     vcName = models.CharField(max_length=50, verbose_name=u'群昵称')   
     vcBase64Name = models.CharField(max_length=100, verbose_name=u'群base64编码后的昵称')    
     vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'拉群用户的微信编号')  
-    vcNickName = models.CharField(max_length=20, verbose_name=u'用户昵称')   
+    vcNickName = models.CharField(max_length=100, verbose_name=u'用户昵称')
     vcBase64NickName = models.CharField(max_length=100, verbose_name=u'用户base64编码后的昵称')
     vcHeadImgUrl = models.CharField(max_length=1000, verbose_name=u'用户头像')
     dtCreateDate = models.DateTimeField(verbose_name=u'创建时间')
-    
+    # 新填一个字段来表示该拉群编号是不是用于激活群成功（2017-7-14之前的无效）
+    state = models.CharField(max_length=10, default=1, verbose_name=u'是否已经开群')
+
     class Meta:
         db_table = 'into_chatroom_message'
         verbose_name_plural = verbose_name = u'入群回调消息'
@@ -82,7 +84,7 @@ class IntoChatRoom(models.Model):
     vcChatRoomSerialNo = models.CharField(max_length=50, verbose_name=u'群编号')
     vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'用户编号')
     vcFatherWxUserSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'用户父级编号（邀请人编号）')
-    vcNickName = models.CharField(max_length=20, verbose_name=u'用户昵称')
+    vcNickName = models.CharField(max_length=100, verbose_name=u'用户昵称')
     vcBase64NickName = models.CharField(max_length=100, verbose_name=u'Base64编码后的用户昵称')
     vcHeadImages = models.CharField(max_length=1000, verbose_name=u'用户头像')
     nJoinChatRoomType = models.CharField(max_length=5, verbose_name=u'入群方式')

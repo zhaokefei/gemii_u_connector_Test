@@ -138,16 +138,24 @@ class ChatMessageListView(viewsets.ModelViewSet):
 class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
     queryset = IntoChatRoomMessageModel.objects.all()
     serializer_class = IntoChatRoomMessageSerializer
-
     def create(self, request, *args, **kwargs):
         django_log.info('robot_into_collback')
         request_data = json.loads(request.data['strContext'])['Data']
         for data in request_data:
+            state = 0
+            try:
+                rsp = commont_tool.open_room(data['vcSerialNo'])
+            except Exception,e:
+                rsp = ''
+            if rsp:
+                rsp = json.loads(rsp)
+                if int(rsp['nResult']) == 1:
+                    state = 1
+            data['state'] = state
+
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 self.perform_create(serializer)
-            rsp = commont_tool.open_room(data['vcSerialNo'])
-            django_log.info('u_open_room_rsp:%s' % str(rsp))
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
@@ -344,19 +352,18 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
             return HttpResponse('SUCCESS')
         members = members[0]['ChatRoomUserData']
 
-        # tmp = 'room_id:%s,count:%s' % (chatroom_id,len(members))
-        #
-        # commont_tool.save_json('members_count1.txt',tmp,'/var/log/django/data/')
+        try:
+            chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+        except ChatRoomModel.DoesNotExist:
+            chatroom = ''
 
         for member in members:
             serializer = self.get_serializer(data=member)
             if serializer.is_valid():
                 self.perform_create(serializer)
-                try:
-                    chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+                # chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+                if chatroom:
                     chatroom.member.add(serializer.instance)
-                except ChatRoomModel.DoesNotExist:
-                    pass
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
         self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
