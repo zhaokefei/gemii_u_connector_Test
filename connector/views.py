@@ -246,6 +246,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     roommerber_data['UserID'] = user_record.id
 
                 if db_gemii_choice == 'gemii_b' and not user_record:
+                    member_log.info('私拉用户')
                     roommerber_data['is_legal'] = '0'
 
                 gemii_data = copy.copy(roommerber_data)
