@@ -245,6 +245,9 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     roommerber_data['open_id'] = user_record.Openid
                     roommerber_data['UserID'] = user_record.id
 
+                if db_gemii_choice == 'gemii_b' and not user_record:
+                    roommerber_data['is_legal'] = '0'
+
                 gemii_data = copy.copy(roommerber_data)
 
                 gemii_data['MemberID'] = u_userid
@@ -442,6 +445,9 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         if userinfo_raw:
             roommember_data['open_id'] = userinfo_raw.Openid
             roommember_data['UserID'] = str(userinfo_raw.id)
+
+        if db_gemii_choice == 'gemii_b' and not userinfo_raw:
+            roommember_data['is_legal'] = '0'
 
         gemii_data = copy.copy(roommember_data)
 

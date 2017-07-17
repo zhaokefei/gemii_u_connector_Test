@@ -42,6 +42,7 @@ class WeChatRoomMemberInfoGemii(models.Model):
     UserID = models.CharField(max_length=255, null=True, blank=True)
     member_icon = models.CharField(max_length=255, null=True, blank=True)
     enter_group_time = models.CharField(max_length=50, null=True, blank=True)
+    is_legal = models.CharField(max_length=10)
 
     class Meta:
         db_table = 'WeChatRoomMemberInfo'
