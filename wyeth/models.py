@@ -41,7 +41,7 @@ class WeChatRoomMemberInfo(models.Model):
     open_id = models.CharField(max_length=100, null=True, blank=True)
     UserID = models.CharField(max_length=255, null=True, blank=True)
     member_icon = models.CharField(max_length=255, null=True, blank=True)
-    is_legal = models.CharField(max_length=10)
+    is_legal = models.CharField(max_length=10,default=1)
 
     class Meta:
         db_table = 'WeChatRoomMemberInfo'
