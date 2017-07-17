@@ -28,6 +28,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
 
 from connector.forms import KickingForm
 
+from django.db.models import F
 from django.conf import settings
 from connector.utils import commont_tool
 from django.db import transaction
@@ -277,6 +278,10 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
                 member_log.info('成功插入成员数据--u_userid(%s)入的群WeChatRoomInfo[%s]' % (str(u_userid), str(u_roomid)))
+                WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid).update(
+                    currentCount=F('currentCount') + 1)
+                WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(
+                    currentCount=F('currentCount') + 1)
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
@@ -337,7 +342,8 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid).delete()
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid).delete()
             count += 1
-
+            WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid).update(currentCount=F('currentCount') - 1)
+            WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(currentCount=F('currentCount') - 1)
         member_log.info('成功处理退群成员（%s）个' % count)
 
     @view_exception_handler
@@ -433,6 +439,8 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
             self.insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice)
             count += 1
         member_log.info('更新U_RoomID：%s的(%s)个成员信息成功' % (str(chatroom_id), count))
+        WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
+        WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
 
     def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
         roommember_data = {
@@ -615,6 +623,9 @@ class UnotityCallback(View):
 
             WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
             WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
+
+            WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid).update(currentCount=F('currentCount') + 1)
+            WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(currentCount=F('currentCount') + 1)
 
     @view_exception_handler
     def post(self, request):

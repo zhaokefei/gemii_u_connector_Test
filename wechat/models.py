@@ -11,6 +11,7 @@ class WeChatRoomInfoGemii(models.Model):
     U_RoomID = models.CharField(max_length=255, null=True, blank=True)
     RoomName = models.CharField(max_length=255, null=True, blank=True)
     owner = models.CharField(max_length=50)
+    currentCount = models.IntegerField()
 
     class Meta:
         db_table = 'WeChatRoomInfo'
