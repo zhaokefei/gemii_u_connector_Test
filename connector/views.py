@@ -55,18 +55,18 @@ class Tick(object):
 
     def set_ayd(self, value):
         self._set_cache('ayd', value)
+    #
+    # def get_msj(self):
+    #     return self._get_cache('msj')
+    #
+    # def set_msj(self, value):
+    #     self._set_cache('msj', value)
 
-    def get_msj(self):
-        return self._get_cache('msj')
-
-    def set_msj(self, value):
-        self._set_cache('msj', value)
-
-    def get_wyeth(self):
-        return self._get_cache('wyeth')
-
-    def set_wyeth(self, value):
-        self._set_cache('wyeth', value)
+    # def get_wyeth(self):
+    #     return self._get_cache('wyeth')
+    #
+    # def set_wyeth(self, value):
+    #     self._set_cache('wyeth', value)
 
 
 class UMessageView(GenericAPIView, mixins.CreateModelMixin):
@@ -255,15 +255,15 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
                 tickCfg = Tick()
                 ayd_task = tickCfg.get_ayd()
-                msj_task = tickCfg.get_msj()
-                wyeth_task = tickCfg.get_wyeth()
-
+                # msj_task = tickCfg.get_msj()
+                # wyeth_task = tickCfg.get_wyeth()
 
                 if not user_record:
-                    if (ayd_task and str(room_record.owner) == 'aiyingdao') or \
-                            (msj_task and str(room_record.owner) == 'meisujiaer') or \
-                            (wyeth_task and str(room_record.owner) == 'wyeth'):
-                        member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
+                    if (ayd_task and str(room_record.owner) == 'aiyingdao'):
+                            # (msj_task and str(room_record.owner) == 'meisujiaer'):
+                            # (wyeth_task and str(room_record.owner) == 'wyeth'):
+                        # member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
+                        member_log.info('私拉踢人的项目--> 爱婴岛: %s' % (str(ayd_task)))
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
                         data = json.loads(response)
                         if str(data['nResult']) == "1":
@@ -815,10 +815,11 @@ class OpenKickingView(View):
             member_log.info('私拉踢人接口调用')
 
             ayd = request.POST.get('ayd_task', 'close')
-            msj = request.POST.get('msj_task', 'close')
-            wyeth = request.POST.get('wyeth_task', 'close')
+            # msj = request.POST.get('msj_task', 'close')
+            # wyeth = request.POST.get('wyeth_task', 'close')
 
-            member_log.info('爱婴岛状态: %s, 美素佳儿状态: %s, 惠氏状态: %s' % (str(ayd), str(msj), str(wyeth)))
+            # member_log.info('爱婴岛状态: %s, 美素佳儿状态: %s, 惠氏状态: %s' % (str(ayd), str(msj), str(wyeth)))
+            member_log.info('爱婴岛状态: %s' % (str(ayd)))
 
             tickCfg = Tick()
 
@@ -827,40 +828,44 @@ class OpenKickingView(View):
             elif ayd == 'close':
                 tickCfg.set_ayd(False)
 
-            if msj == 'open':
-                tickCfg.set_msj(True)
-            elif msj == 'close':
-                tickCfg.set_msj(False)
+            # if msj == 'open':
+            #     tickCfg.set_msj(True)
+            # elif msj == 'close':
+            #     tickCfg.set_msj(False)
 
-            if wyeth == 'open':
-                tickCfg.set_wyeth(True)
-            elif wyeth == 'close':
-                tickCfg.set_wyeth(False)
+            # if wyeth == 'open':
+            #     tickCfg.set_wyeth(True)
+            # elif wyeth == 'close':
+            #     tickCfg.set_wyeth(False)
 
             return HttpResponseRedirect('/connector/showtask/')
         return render(request, 'kicking_task.html', {'kicking_form': kicking_form})
+
 
 class ShowKickingView(View):
     def get(self, request):
         tickCfg = Tick()
 
         ayd = tickCfg.get_ayd()
-        msj = tickCfg.get_msj()
-        wyeth = tickCfg.get_wyeth()
+        # msj = tickCfg.get_msj()
+        # wyeth = tickCfg.get_wyeth()
 
         if ayd == True:
             ayd_task = "私拉踢人已开通"
         elif ayd == False:
             ayd_task = "私拉踢人未开通"
+        else:
+            ayd_task = "请先设置爱婴岛私拉开关"
 
-        if msj == True:
-            msj_task = "私拉踢人已开通"
-        elif msj == False:
-            msj_task = "私拉踢人未开通"
+        # if msj == True:
+        #     msj_task = "私拉踢人已开通"
+        # elif msj == False:
+        #     msj_task = "私拉踢人未开通"
+        #
+        # if wyeth == True:
+        #     wyeth_task = "私拉踢人已开通"
+        # elif wyeth == False:
+        #     wyeth_task = "私拉踢人未开通"
 
-        if wyeth == True:
-            wyeth_task = "私拉踢人已开通"
-        elif wyeth == False:
-            wyeth_task = "私拉踢人未开通"
-
-        return render(request, 'show_task.html', {'ayd': ayd_task, 'msj': msj_task, 'wyeth': wyeth_task})
+        # return render(request, 'show_task.html', {'ayd': ayd_task, 'msj': msj_task, 'wyeth': wyeth_task})
+        return render(request, 'show_task.html', {'ayd': ayd_task})
