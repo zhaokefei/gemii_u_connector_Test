@@ -143,7 +143,7 @@ class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
         django_log.info('robot_into_collback')
         request_data = json.loads(request.data['strContext'], strict=False)['Data']
         for data in request_data:
-            state = 0
+            state = '0'
             try:
                 rsp = commont_tool.open_room(data['vcSerialNo'])
             except Exception,e:
@@ -151,7 +151,7 @@ class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
             if rsp:
                 rsp = json.loads(rsp)
                 if int(rsp['nResult']) == 1:
-                    state = 1
+                    state = '1'
             data['state'] = state
 
             serializer = self.get_serializer(data=data)
