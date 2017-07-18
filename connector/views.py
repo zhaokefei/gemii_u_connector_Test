@@ -583,7 +583,8 @@ class UnotityCallback(View):
                 'Type': 'offers',
             }
 
-            UserStatus.objects.create(**user_status_parm)
+            # 2017/7/11-2017/7/18 data loss
+            UserStatus.objects.using(db_wyeth_choice).create(**user_status_parm)
             member_log.info('成功插入UserStatus数据：%s' % user_status_parm)
             self.handle_member_enter_room(room_id, room_name, user_id, user_nickname, userinfo_record, user_head_img, db_wyeth_choice, db_gemii_choice)
         else:
