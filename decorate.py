@@ -20,7 +20,7 @@ def view_exception_handler(view_func):
         try:
             return view_func(self,request,*args, **kwargs)
         except Exception,e:
-            if 'strContext' in request.data:
+            if hasattr(request, 'data') and 'strContext' in request.data:
                 datas = request.data['strContext']
                 view_log.info('accept strContext data:')
                 view_log.info(datas)
