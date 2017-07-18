@@ -85,6 +85,9 @@ WSGI_APPLICATION = 'UConnector.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
+CRONJOBS = [
+    ('30 23 * * *', 'django.core.management.call_command', ['schedule_check_roominfo']),
+]
 
 DATABASES = {
     'default': {

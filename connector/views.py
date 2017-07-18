@@ -255,6 +255,14 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 gemii_data['MemberID'] = u_userid
                 gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+                WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
+                WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
+                member_log.info('成功插入成员数据--u_userid(%s)入的群WeChatRoomInfo[%s]' % (str(u_userid), str(u_roomid)))
+                WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid).update(
+                    currentCount=F('currentCount') + 1)
+                WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(
+                    currentCount=F('currentCount') + 1)
+
                 tickCfg = Tick()
                 ayd_task = tickCfg.get_ayd()
                 # msj_task = tickCfg.get_msj()
@@ -272,16 +280,6 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                             member_log.info('私拉踢人已打开，%s 用户已被移出群 %s' % (str(u_userid), str(u_roomid)))
                         else:
                             member_log.info('私拉踢人已打开，由创返回码 %s' % str(response))
-
-                        continue
-
-                WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
-                WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
-                member_log.info('成功插入成员数据--u_userid(%s)入的群WeChatRoomInfo[%s]' % (str(u_userid), str(u_roomid)))
-                WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid).update(
-                    currentCount=F('currentCount') + 1)
-                WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(
-                    currentCount=F('currentCount') + 1)
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):

@@ -82,6 +82,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'UConnector.wsgi.application'
 
+CRONJOBS = [
+    ('30 23 * * *', 'django.core.management.call_command', ['schedule_check_roominfo']),
+]
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -103,7 +106,7 @@ DATABASES = {
 
     'gemii_b': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wechat_gemii',
+        'NAME': 'wechat_group',
         'USER': 'root',
         'PASSWORD': 't721si74',
         'HOST': 'wechatbot4jbb.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn',
