@@ -22,6 +22,8 @@ django_log = logging.getLogger('message')
 
 
 class DataReceiveThread(threading.Thread):
+    _running = False
+
     def __init__(self, name, conf):
         threading.Thread.__init__(self)
         host = conf['host']
@@ -42,6 +44,7 @@ class DataReceiveThread(threading.Thread):
         django_log.info('stop')
 
     def stop(self):
+        self._running = False
         self.ps.unsubscribe()
 
     def process(self):
@@ -50,29 +53,35 @@ class DataReceiveThread(threading.Thread):
         :return:
         """
         # 订阅收消息频道
-        self.ps.subscribe(self.channel_sub)
-        # 监听频道
-        for data in self.ps.listen():
-            # 请求前发送信号
-            signals.request_started.send(sender=self)
-            # 获取redis数据, 出错重启apache2
-            if data['type'] == 'message':
-                robot_msg, send_msg = self.get_msg_data(data)
-                if not (robot_msg and send_msg):
-                    django_log.info('取数据时出错，进入下一条消息')
-                    continue
-                django_log.info('马上要进入由创接口调用')
-                # 调用由创接口，超时调用三次
-                response = self.send_message(**send_msg)
-                if not response:
-                    django_log.info('请求超时三次, 自动跳过该消息')
-                    continue
-                django_log.info('由创发送消息返回码------> %s' % str(response))
-                # 存数据至mysql
-                self.insert_msg_to_database(response, robot_msg)
-
-            # 请求后发送信号
-            signals.request_finished.send(sender=self)
+        self._running = True
+        while self._running:
+            try:
+                self.ps.subscribe(self.channel_sub)
+                # 监听频道
+                for data in self.ps.listen():
+                    # 请求前发送信号
+                    signals.request_started.send(sender=self)
+                    # 获取redis数据, 出错重启apache2
+                    if data['type'] == 'message':
+                        robot_msg, send_msg = self.get_msg_data(data)
+                        if not (robot_msg and send_msg):
+                            django_log.info('取数据时出错，进入下一条消息')
+                            continue
+                        django_log.info('马上要进入由创接口调用')
+                        # 调用由创接口，超时调用三次
+                        response = self.send_message(**send_msg)
+                        if not response:
+                            django_log.info('请求超时三次, 自动跳过该消息')
+                            continue
+                        django_log.info('由创发送消息返回码------> %s' % str(response))
+                        # 存数据至mysql
+                        self.insert_msg_to_database(response, robot_msg)
+                # 请求后发送信号
+                signals.request_finished.send(sender=self)
+            except Exception, e:
+                django_log.error(e)
+                time.sleep(2)
+                django_log.info('重新连接')
 
     def insert_msg_to_database(self, response, robot_msg):
         response_data = json.loads(response)
