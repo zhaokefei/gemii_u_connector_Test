@@ -202,6 +202,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 serNum = str(chatroom_record.serNum)
             except ChatRoomModel.DoesNotExist:
                 serNum = 'B'
+                chatroom_record = ""
 
             if serNum == 'A':
                 db_gemii_choice = 'gemii'
@@ -274,6 +275,11 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                             # (wyeth_task and str(room_record.owner) == 'wyeth'):
                         # member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
                         member_log.info('私拉踢人的项目--> 爱婴岛: %s' % (str(ayd_task)))
+                        if chatroom_record:
+                            vcRobotSerialNo = chatroom_record.vcRobotSerialNo
+                            content = "亲，你要被踢出群了哈!"
+                            apis.send_chat_message(vcRobotSerialNo=vcRobotSerialNo, vcChatRoomSerialNo=u_roomid,
+                                                   vcWeixinSerialNo=u_userid, msgContent=content)
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
                         data = json.loads(response)
                         if str(data['nResult']) == "1":
@@ -640,6 +646,18 @@ class ChatRoomKickingView(View):
         vcChatRoomSerialNo = request.GET['u_roomId']
         vcWxUserSerialNo = request.GET['u_userId']
         member_log.info('java调用踢人接口, 群 %s 用户 %s' % (str(vcChatRoomSerialNo), str(vcWxUserSerialNo)))
+        try:
+            chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=vcChatRoomSerialNo)
+        except ChatRoomModel.DoesNotExist:
+            chatroom_record = ""
+            member_log.info('未获取到群信息')
+
+        if chatroom_record:
+            vcRobotSerialNo = chatroom_record.vcRobotSerialNo
+            content = "亲，你要被踢出群了哈!"
+            apis.send_chat_message(vcRobotSerialNo=vcRobotSerialNo, vcChatRoomSerialNo=vcChatRoomSerialNo,
+                                   vcWeixinSerialNo=vcWxUserSerialNo, msgContent=content)
+
         response = apis.chatroom_kicking(vcRelationSerialNo="",
                                          vcChatRoomSerialNo=vcChatRoomSerialNo,
                                          vcWxUserSerialNo=vcWxUserSerialNo,
