@@ -979,6 +979,6 @@ class RebotRoomView(View):
     @view_exception_handler
     def post(self, request):
 
-        data = json.loads(request.data['strContext'], strict=False)
+        data = json.loads(request.POST['strContext'], strict=False)
         member_log.info(data)
         return self.batch_create(request)
