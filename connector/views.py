@@ -345,7 +345,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                             roomid = room_record.RoomID
                             kick = KickingSendMsg()
                             kick.kicking_send_msg(chatroom_record, serNum, u_roomid, u_userid, roomid)
-                            time.sleep(10)
+                            time.sleep(2)
 
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
                         data = json.loads(response)
@@ -727,7 +727,7 @@ class ChatRoomKickingView(View):
         if chatroom_record:
             kick = KickingSendMsg()
             kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID, monitorname=monitorName)
-            time.sleep(10)
+            time.sleep(2)
 
         response = apis.chatroom_kicking(vcRelationSerialNo="",
                                          vcChatRoomSerialNo=vcChatRoomSerialNo,
