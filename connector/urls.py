@@ -35,5 +35,5 @@ urlpatterns += [
     url(r'^modifyroomname/$', csrf_exempt(ModifyRoomNameView.as_view()), name='modifyroomname'),
     url(r'^kickingtask/$', csrf_exempt(OpenKickingView.as_view()), name='kickingtask'),
     url(r'^showtask/$', csrf_exempt(ShowKickingView.as_view()), name='showtask'),
-    url(r'^rebotroom/$', csrf_exempt(RebotRoomView.as_view()), name='showtask'),
+    url(r'^rebotroom/$', csrf_exempt(RebotRoomView.as_view()), name='rebotroom'),
 ]
