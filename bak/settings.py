@@ -35,6 +35,7 @@ NO = '201706271010013'
 SEC = '201706271010013'
 UC_AGENT = 'o1o-PwC2bydkk1iasqeHIuQswS2I'
 
+KICKINGCONTENT = u'由于你违反本群规定，你将被踢出本群!'
 # Application definition
 
 INSTALLED_APPS = [
