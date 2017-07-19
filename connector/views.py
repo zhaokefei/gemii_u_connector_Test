@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 #from __future__ import unicode_literals
 
+import random
+import string
 import time
 import json
 import datetime
 import requests
 import logging
 import copy
+
+import redis
 
 from django.views.generic import View
 from django.shortcuts import render
@@ -20,7 +24,7 @@ from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
     IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask
-from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii
+from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
 from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
@@ -39,6 +43,8 @@ from legacy_system.publish import pub_message
 django_log = logging.getLogger('django')
 message_log = logging.getLogger('message')
 member_log = logging.getLogger('member')
+
+CODE_STR = string.ascii_letters + string.digits
 
 
 class Tick(object):
@@ -68,6 +74,18 @@ class Tick(object):
     #
     # def set_wyeth(self, value):
     #     self._set_cache('wyeth', value)
+
+class KickingRedis(object):
+
+    def __init__(self, conf):
+        host = conf['host']
+        port = conf['port']
+        password = conf['password']
+        db = conf['db']
+        self.type = conf['type']
+        self.redis = redis.StrictRedis(host=host, port=port, password=password, db=db)
+
+        self.channel_pub = 'p20170701_'
 
 
 class UMessageView(GenericAPIView, mixins.CreateModelMixin):
@@ -277,7 +295,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                         member_log.info('私拉踢人的项目--> 爱婴岛: %s' % (str(ayd_task)))
                         if chatroom_record:
                             vcRobotSerialNo = chatroom_record.vcRobotSerialNo
-                            content = "亲，你要被踢出群了哈!"
+                            content = u"亲，你要被踢出群了哈!"
                             apis.send_chat_message(vcRobotSerialNo=vcRobotSerialNo, vcChatRoomSerialNo=u_roomid,
                                                    vcWeixinSerialNo=u_userid, msgContent=content)
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
@@ -391,7 +409,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         chatroom_id = data['vcChatRoomSerialNo']
         return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
-    # @transaction.atomic()
+    @transaction.atomic()
     def handle_member_room(self, members, chatroom_id):
         """
         参数	说明
@@ -645,18 +663,45 @@ class ChatRoomKickingView(View):
     def get(self, request, *args, **kwargs):
         vcChatRoomSerialNo = request.GET['u_roomId']
         vcWxUserSerialNo = request.GET['u_userId']
+        RoomID = request.GET['roomId']
+        monitorName = request.GET['monitorName']
         member_log.info('java调用踢人接口, 群 %s 用户 %s' % (str(vcChatRoomSerialNo), str(vcWxUserSerialNo)))
+
         try:
             chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=vcChatRoomSerialNo)
+            serNum = str(chatroom_record.serNum)
         except ChatRoomModel.DoesNotExist:
+            serNum = 'B'
             chatroom_record = ""
             member_log.info('未获取到群信息')
 
         if chatroom_record:
             vcRobotSerialNo = chatroom_record.vcRobotSerialNo
-            content = "亲，你要被踢出群了哈!"
+            content = u"亲,你要被踢出群了哈!"
             apis.send_chat_message(vcRobotSerialNo=vcRobotSerialNo, vcChatRoomSerialNo=vcChatRoomSerialNo,
                                    vcWeixinSerialNo=vcWxUserSerialNo, msgContent=content)
+            robot_msg = {
+                "Content": content,
+                "MsgType": 1,
+                "AppMsgType": 0,
+                "UserDisplayName": monitorName,
+                "MsgId": ''.join(random.sample(CODE_STR, random.randint(20, 24))),
+                "CreateTime": time.strftime('%Y-%m-%d %H:%M:%S'),
+                "RoomID": RoomID,
+                "MemberID": "",
+                "UserNickName": monitorName
+            }
+
+            if serNum == 'A':
+                WeChatRoomMessageGemii.objects.using('gemii').create(**robot_msg)
+                redis_a = KickingRedis(settings.REDIS_CONFIG['redis_a'])
+                redis_a.redis.publish(redis_a.channel_pub, json.dumps(robot_msg))
+            else:
+                print "发送消息成功"
+                WeChatRoomMessageGemii.objects.using('gemii_b').create(**robot_msg)
+                redis_b = KickingRedis(settings.REDIS_CONFIG['redis_b'])
+                redis_b.redis.publish(redis_b.channel_pub, json.dumps(robot_msg))
+
 
         response = apis.chatroom_kicking(vcRelationSerialNo="",
                                          vcChatRoomSerialNo=vcChatRoomSerialNo,
@@ -668,7 +713,6 @@ class ChatRoomKickingView(View):
         else:
             member_log.info('由创踢人返回码错误 %s' % str(response))
         return HttpResponse(response, content_type="application/json")
-
 
 class CreateRoomTaskView(View):
     """接受建群任务进行建群处理"""
