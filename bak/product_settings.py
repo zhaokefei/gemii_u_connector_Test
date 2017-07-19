@@ -61,13 +61,13 @@ MIDDLEWARE = [
 NO = '201705051010001'
 SEC = '201705051010001'
 UC_AGENT = 'oc1cx1MixijF8PgdqN9kL3yVKpZo'
-
+KICKINGCONTENT = u'亲爱的麻麻，您私拉用户入群的行为不符合社群规范，抱歉您将会被请出群'
 ROOT_URLCONF = 'UConnector.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
