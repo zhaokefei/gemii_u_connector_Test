@@ -24,7 +24,6 @@ urlpatterns = [
     url(r'intochatroom/$',IntoChatRoomCreateView.as_view(), name='intochatroom'),
     url(r'dropoutchatroom/$', DropOutChatRoomCreateView.as_view(), name='dropoutchatroom'),
     url(r'memberinfo/$', MemberInfoCreateView.as_view(), name='memberinfo'),
-    url(r'rebotroom/$', RebotRoomView.as_view(), name='rebotroom'),
 ]
 
 urlpatterns += [
@@ -36,4 +35,5 @@ urlpatterns += [
     url(r'^modifyroomname/$', csrf_exempt(ModifyRoomNameView.as_view()), name='modifyroomname'),
     url(r'^kickingtask/$', csrf_exempt(OpenKickingView.as_view()), name='kickingtask'),
     url(r'^showtask/$', csrf_exempt(ShowKickingView.as_view()), name='showtask'),
+    url(r'^rebotroom/$', csrf_exempt(RebotRoomView.as_view()), name='showtask'),
 ]
