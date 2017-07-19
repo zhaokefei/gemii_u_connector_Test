@@ -50,16 +50,18 @@ class WeChatRoomMemberInfoGemii(models.Model):
         unique_together = (('MemberID', 'RoomID'))
 
 
-# class UserInfo(models.Model):
-#     Openid = models.CharField(max_length=255, null=True, blank=True)
-#     U_UserID = models.CharField(max_length=255, null=True, blank=True)
-#     UserName = models.CharField(max_length=50, null=True, blank=True)
-#     MatchGroup = models.CharField(max_length=50, null=True, blank=True)
-#
-#     class Meta:
-#         db_table = 'UserInfo'
+class MonitorRoom(models.Model):
+    MonitorID = models.IntegerField()
+    RoomID = models.CharField(max_length=100, null=True, blank=True)
+
+    class Meta:
+        db_table = "MonitorRoom"
 
 
+class Monitor(models.Model):
+    UserName = models.CharField(max_length=255, null=True, blank=True)
 
+    class Meta:
+        db_table = "Monitor"
 
 

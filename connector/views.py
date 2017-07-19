@@ -24,7 +24,8 @@ from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
     IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask
-from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii
+from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii, \
+    Monitor, MonitorRoom
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
 from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
@@ -86,6 +87,8 @@ class KickingRedis(object):
         self.redis = redis.StrictRedis(host=host, port=port, password=password, db=db)
 
         self.channel_pub = 'p20170701_'
+
+
 class KickingSendMsg(object):
 
     def kicking_send_msg(self, chatroom_record, sernum, u_roomid, u_userid, roomid, monitorname=None):
@@ -93,6 +96,24 @@ class KickingSendMsg(object):
         content = settings.KICKINGCONTENT
         apis.send_chat_message(vcRobotSerialNo=vcRobotSerialNo, vcChatRoomSerialNo=u_roomid,
                                vcWeixinSerialNo=u_userid, msgContent=content)
+        if monitorname is None:
+            if sernum == "A":
+                try:
+                    monitorroom = MonitorRoom.objects.using('gemii').get(RoomID=roomid)
+                    monitorid = monitorroom.MonitorID
+                    monitor = Monitor.objects.using('gemii').get(id=monitorid)
+                    monitorname = monitor.UserName
+                except MonitorRoom.DoesNotExist:
+                    monitorname = ""
+            else:
+                try:
+                    monitorroom = MonitorRoom.objects.using('gemii_b').get(RoomID=roomid)
+                    monitorid = monitorroom.MonitorID
+                    monitor = Monitor.objects.using('gemii_b').get(id=monitorid)
+                    monitorname = monitor.UserName
+                except MonitorRoom.DoesNotExist:
+                    monitorname = ""
+
         robot_msg = {
             "Content": content,
             "MsgType": 1,
@@ -323,7 +344,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                         if chatroom_record:
                             roomid = room_record.RoomID
                             kick = KickingSendMsg()
-                            kick.kicking_send_msg(chatroom_record, serNum, u_roomid, u_userid, roomid, monitorname='kicking')
+                            kick.kicking_send_msg(chatroom_record, serNum, u_roomid, u_userid, roomid)
 
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
                         data = json.loads(response)
