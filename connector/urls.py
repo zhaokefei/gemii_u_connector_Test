@@ -10,7 +10,7 @@ from rest_framework.routers import DefaultRouter
 from .views import ChatMessageListView, URobotView, \
 ChatRoomView, IntoChatRoomMessageCreateView, IntoChatRoomCreateView,\
 DropOutChatRoomCreateView, MemberInfoCreateView, GetUrobotQucode, UnotityCallback, CreateRoomTaskView, \
-ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView, OpenKickingView, ShowKickingView
+ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView, OpenKickingView, ShowKickingView,RebotRoomView
 from django.views.decorators.csrf import csrf_exempt
 
 router = DefaultRouter()
@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'intochatroom/$',IntoChatRoomCreateView.as_view(), name='intochatroom'),
     url(r'dropoutchatroom/$', DropOutChatRoomCreateView.as_view(), name='dropoutchatroom'),
     url(r'memberinfo/$', MemberInfoCreateView.as_view(), name='memberinfo'),
+    url(r'rebotroom/$', RebotRoomView.as_view(), name='rebotroom'),
 ]
 
 urlpatterns += [

@@ -947,3 +947,17 @@ class ShowKickingView(View):
 
         # return render(request, 'show_task.html', {'ayd': ayd_task, 'msj': msj_task, 'wyeth': wyeth_task})
         return render(request, 'show_task.html', {'ayd': ayd_task})
+
+class RebotRoomView(View):
+    # queryset = MemberInfo.objects.all()
+    # serializer_class = MemberInfoSerializer
+    def batch_create(self,request):
+
+        return HttpResponse('SUCCESS')
+
+    @view_exception_handler
+    def post(self, request):
+
+        data = json.loads(request.data['strContext'], strict=False)
+        member_log.info(data)
+        return self.batch_create(request)
