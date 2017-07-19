@@ -704,7 +704,7 @@ class ChatRoomKickingView(View):
 
         if chatroom_record:
             kick = KickingSendMsg()
-            kick.kicking_send_msg(chatroom_record, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID, monitorname=monitorName)
+            kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID, monitorname=monitorName)
 
         response = apis.chatroom_kicking(vcRelationSerialNo="",
                                          vcChatRoomSerialNo=vcChatRoomSerialNo,
