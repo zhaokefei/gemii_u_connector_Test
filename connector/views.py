@@ -898,7 +898,7 @@ class ModifyRoomNameView(View):
                 chatroom_record.vcName = vcName
                 chatroom_record.save()
                 django_log.info('修改群信息表中的群名')
-            except RoomTask.DoesNotExist:
+            except ChatRoomModel.DoesNotExist:
                 django_log.info('未找到任务编号')
         else:
             django_log.info('modify chatroom failed, chat_room_id --> %s' % str(chat_room_id))
