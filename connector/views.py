@@ -23,7 +23,7 @@ from rest_framework.generics import GenericAPIView
 from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
-    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom
 from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii, \
     Monitor, MonitorRoom
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
@@ -977,15 +977,20 @@ class ShowKickingView(View):
         return render(request, 'show_task.html', {'ayd': ayd_task})
 
 class RebotRoomView(View):
-    # queryset = MemberInfo.objects.all()
-    # serializer_class = MemberInfoSerializer
     def batch_create(self,request):
-
+        data = json.loads(request.POST['strContext'], strict=False)
+        vcrobotserialno = data['vcRobotSerialNo']
+        nodatas = data['NoData']
+        datas = data['Data']
+        RobotChatRoom.objects.filter(vcRobotSerialNo=vcrobotserialno).delete()
+        create_list = []
+        for nodata in nodatas:
+            create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=nodata['vcChatRoomSerialNo'], state='0'))
+        for data in datas:
+            create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=data['vcChatRoomSerialNo'], state='1'))
+        RobotChatRoom.objects.bulk_create(create_list)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
     def post(self, request):
-
-        data = json.loads(request.POST['strContext'], strict=False)
-        member_log.info(data)
         return self.batch_create(request)

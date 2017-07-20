@@ -130,3 +130,13 @@ class RoomTask(models.Model):
     class Meta:
         db_table = 'roomtask'
         verbose_name_plural = verbose_name = u'建群任务信息'
+
+
+class RobotChatRoom(models.Model):
+    vcRobotSerialNo = models.CharField(max_length=50, verbose_name=u'机器人编号')
+    vcChatRoomSerialNo = models.CharField(max_length=50, verbose_name=u'群编号')
+    state = models.CharField(max_length=10, default=0, verbose_name=u'是否在群内')
+
+    class Meta:
+        db_table = 'robotchatroom'
+        verbose_name_plural = verbose_name = u'机器人群信息'
