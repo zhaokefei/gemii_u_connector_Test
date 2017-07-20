@@ -712,8 +712,8 @@ class ChatRoomKickingView(View):
     def get(self, request, *args, **kwargs):
         vcChatRoomSerialNo = request.GET['u_roomId']
         vcWxUserSerialNo = request.GET['u_userId']
-        RoomID = request.GET['roomId']
-        monitorName = request.GET['monitorName']
+        RoomID = request.GET.get('roomId', '')
+        monitorName = request.GET.get('monitorName', '')
         member_log.info('java调用踢人接口, 群 %s 用户 %s' % (str(vcChatRoomSerialNo), str(vcWxUserSerialNo)))
 
         try:
@@ -725,9 +725,10 @@ class ChatRoomKickingView(View):
             member_log.info('未获取到群信息')
 
         if chatroom_record:
-            kick = KickingSendMsg()
-            kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID, monitorname=monitorName)
-            time.sleep(2)
+            if RoomID and monitorName:
+                kick = KickingSendMsg()
+                kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID, monitorname=monitorName)
+                time.sleep(2)
 
         response = apis.chatroom_kicking(vcRelationSerialNo="",
                                          vcChatRoomSerialNo=vcChatRoomSerialNo,
