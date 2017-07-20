@@ -27,7 +27,9 @@ from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii
 # }
 django_log = logging.getLogger('django')
 
-msg_type_map = {'2001': 1, '2002': 47, '2005': 49, '2003': 34, '2007': 47}
+# 消息类型 2001 文字 2002 图片 2003 语音 2004 视频 2005 链接 2006 名片 2007 动态表情 2013 小程序
+
+msg_type_map = {'2001': 1, '2002': 47, '2003': 34, '2005': 50, '2007': 47}
 
 class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     Content = serializers.SerializerMethodField('get_content')
@@ -70,6 +72,9 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
         return self._db_gemii_choice
 
     def get_content(self, obj):
+        if msg_type_map.get('2005', False):
+            django_log.info('链接消息')
+            return '#$#'.join([obj.vcShareTitle, obj.vcShareDesc, obj.vcContent])
         if msg_type_map.get(str(obj.nMsgType), None) is None:
             django_log.info("未识别的信息，类型为 %s" % obj.nMsgType)
             return "未识别的信息"
