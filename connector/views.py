@@ -853,6 +853,10 @@ class CreateRoomCallbackView(View):
                 vcChatRoomSerialNo = room_info['uRoomId']
                 vcName = room_info['roomName']
 
+                room_record = ChatRoomModel.objects.filter(vcChatRoomSerialNo=vcChatRoomSerialNo)
+                if room_record.exists():
+                    continue
+
                 chatroom = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo,
                                          vcName=vcName, serNum=serNum, vcBase64Name=vcName)
                 chatroom.save()
