@@ -72,7 +72,7 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
         return self._db_gemii_choice
 
     def get_content(self, obj):
-        if msg_type_map.get('2005', False):
+        if str(obj.nMsgType) == '2005':
             django_log.info('链接消息')
             return '#$#'.join([obj.vcShareTitle, obj.vcShareDesc, obj.vcContent])
         if msg_type_map.get(str(obj.nMsgType), None) is None:
