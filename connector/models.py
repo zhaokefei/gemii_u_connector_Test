@@ -143,7 +143,7 @@ class RobotChatRoom(models.Model):
 
 
 class GemiiRobot(models.Model):
-    vcRobotSerialNo = models.CharField(max_length=50, verbose_name=u'机器人编号')
+    vcRobotSerialNo = models.CharField(max_length=50, unique=True, verbose_name=u'机器人编号')
     vcName = models.CharField(max_length=100, verbose_name=u'机器人名称')
     qrcode = models.CharField(max_length=255, verbose_name=u'机器人二维码')
 
