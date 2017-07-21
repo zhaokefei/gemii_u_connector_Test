@@ -334,7 +334,8 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 vcFatherWxUserSerialNo = member["vcFatherWxUserSerialNo"]
                 fatherrobot = GemiiRobot.objects.filter(vcRobotSerialNo=vcFatherWxUserSerialNo)
                 if fatherrobot.exists():
-                    member_log.info('机器人拉人入群 %s' % str(fatherrobot))
+                    vcName = fatherrobot.first().vcName
+                    member_log.info('机器人 %s 拉人入群 %s' % (str(vcName), str(vcFatherWxUserSerialNo)))
                     continue
 
                 tickCfg = Tick()
