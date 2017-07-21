@@ -732,12 +732,7 @@ class ChatRoomKickingView(View):
             chatroom_record = ""
             member_log.info('未获取到群信息')
 
-        try:
-            user_record = UserInfo.objects.get(U_UserID=vcWxUserSerialNo, MatchGroup=RoomID)
-        except UserInfo.DoesNotExist:
-            user_record = ""
-
-        if chatroom_record and not user_record:
+        if chatroom_record:
             member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
             if RoomID and monitorName:
                 kick = KickingSendMsg()
