@@ -140,3 +140,13 @@ class RobotChatRoom(models.Model):
     class Meta:
         db_table = 'robotchatroom'
         verbose_name_plural = verbose_name = u'机器人群信息'
+
+
+class GemiiRobot(models.Model):
+    vcRobotSerialNo = models.CharField(max_length=50, verbose_name=u'机器人编号')
+    vcName = models.CharField(max_length=100, verbose_name=u'机器人名称')
+    qrcode = models.CharField(max_length=255, verbose_name=u'机器人二维码')
+
+    class Meta:
+        db_table = 'gemiirobot'
+        verbose_name_plural = verbose_name = u'景栗设备'

@@ -23,7 +23,7 @@ from rest_framework.generics import GenericAPIView
 from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
-    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom, GemiiRobot
 from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii, \
     Monitor, MonitorRoom
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
@@ -330,6 +330,13 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(
                     currentCount=F('currentCount') + 1)
 
+                # 机器人拉人不踢
+                vcFatherWxUserSerialNo = member["vcFatherWxUserSerialNo"]
+                fatherrobot = GemiiRobot.objects.filter(vcRobotSerialNo=vcFatherWxUserSerialNo)
+                if fatherrobot.exists():
+                    member_log.info('机器人拉人入群 %s' % str(fatherrobot))
+                    continue
+
                 tickCfg = Tick()
                 ayd_task = tickCfg.get_ayd()
                 # msj_task = tickCfg.get_msj()
@@ -337,8 +344,8 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
                 if not user_record:
                     if (ayd_task and str(room_record.owner) == 'aiyingdao'):
-                            # (msj_task and str(room_record.owner) == 'meisujiaer'):
-                            # (wyeth_task and str(room_record.owner) == 'wyeth'):
+                        # (msj_task and str(room_record.owner) == 'meisujiaer'):
+                        # (wyeth_task and str(room_record.owner) == 'wyeth'):
                         # member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
                         member_log.info('私拉踢人的项目--> 爱婴岛: %s' % (str(ayd_task)))
                         if chatroom_record:
