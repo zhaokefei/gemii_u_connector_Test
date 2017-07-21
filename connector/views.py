@@ -1003,3 +1003,68 @@ class RebotRoomView(View):
     @view_exception_handler
     def post(self, request):
         return self.batch_create(request)
+
+class Qrcode(View):
+    """
+        {
+      “prefix”:"",
+      “suffix”:"",
+      "dirname":"",
+      "infos":[
+               {"filename":"","params":""},
+               {"filename":"","params":""},
+               {"filename":"","params":""},
+              ]
+    }
+    """
+
+    def post(self, request):
+        return self.qrcode_make(request)
+
+    def qrcode_make(self, request):
+        import qrcode
+        import os
+        from connector.utils import short_url
+        try:
+            prefix = request.POST['prefix']
+            suffix = request.POST['suffix']
+            dirname = request.POST['dirname']
+            infos = request.POST['infos']
+        except:
+            rsp = {
+                "resultCode": "-1",
+                "desc": "缺少必要的参数",
+            }
+            return HttpResponse(json.dumps(rsp), content_type="application/json")
+
+        dir_path = '/var/helper/qrcords/%s' % dirname
+
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+
+        for info in infos:
+            params = info['params']
+            filename = info['filename']
+            url = '%s%s%s' % (prefix, params, suffix)
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+
+            url = short_url.get_short_url_from_sina(url) or url
+            qr.add_data(url)
+            qr.make(fit=True)
+            img = qr.make_image()
+
+            fn = os.path.join(dir_path, filename, 'png')
+            img.save(fn)
+
+        rsp = {
+                "resultCode": "100",
+                "desc": "二维码生成成功",
+                "resultContent": {"filepath": "/var/helper/qrcords/%s" % dirname}
+                }
+
+        return HttpResponse(json.dumps(rsp), content_type="application/json")
