@@ -43,7 +43,6 @@ class RobotChatRoomAdmin(admin.ModelAdmin):
     search_fields = ('vcRobotSerialNo', 'vcChatRoomSerialNo',)
 
 class GemiiRobotAdmin(admin.ModelAdmin):
-    list_filter = ('vcRobotSerialNo', 'vcName')
     list_display = ('vcRobotSerialNo', 'vcName', 'qrcode')
     search_fields = ('vcRobotSerialNo', 'vcName')
 
