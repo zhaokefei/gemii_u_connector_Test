@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 
 import json
+import random
+import time
 import logging
 
 from connector import apis
@@ -78,6 +80,8 @@ class Command(BaseCommand):
                     count = record.count()
                     if count == 1:
                         record.update(vcName=vcName, vcBase64Name=vcBase64Name)
+
+                time.sleep(random.random())
 
         sql_log.info(u'群总数为： %s' % qun_total)
         sql_log.info(u'插入群数据总数： %s' % insert_num)

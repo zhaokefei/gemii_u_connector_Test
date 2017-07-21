@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'connector',
     'wechat',
     'wyeth',
+    'django_crontab',
     'legacy_system',
     'rest_framework',
 ]
@@ -84,6 +85,7 @@ WSGI_APPLICATION = 'UConnector.wsgi.application'
 
 CRONJOBS = [
     ('30 23 * * *', 'django.core.management.call_command', ['schedule_check_roominfo']),
+    ('30 22 * * *', 'django.core.management.call_command', ['sync_robot_data']),
 ]
 
 # Database
