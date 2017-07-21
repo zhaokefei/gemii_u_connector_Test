@@ -339,8 +339,9 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     continue
 
                 if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
-                    response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
                     member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
+                    response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+                    member_log.info('response %s' % str(response))
 
                 tickCfg = Tick()
                 ayd_task = tickCfg.get_ayd()
