@@ -733,7 +733,7 @@ class ChatRoomKickingView(View):
             member_log.info('未获取到群信息')
 
         if chatroom_record:
-            member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % str(monitorName), str(RoomID))
+            member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
             if RoomID and monitorName:
                 kick = KickingSendMsg()
                 kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID, monitorname=monitorName)
