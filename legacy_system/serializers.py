@@ -90,9 +90,7 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     def _get_member_info(self, room_id, user_id, db_gemii_choice):
         if self._info:
             return self._info['item']
-        key = 'wechatroommemberinfo_data:{room_id}:{user_id}:{db_gemii_choice}'.format(room_id=room_id,
-                                                                                       user_id=user_id,
-                                                                                       db_gemii_choice=db_gemii_choice)
+        key = 'wechatroommemberinfo_data:{room_id}:{user_id}'.format(room_id=room_id, user_id=user_id)
         data = cache.get(key)
         if not data:
             data = {

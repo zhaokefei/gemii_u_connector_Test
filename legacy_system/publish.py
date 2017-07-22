@@ -40,10 +40,8 @@ def pub_message(sender, instance=None, created=False, **kwargs):
         serializer = LegacyChatRoomMessageSerializer(instance)
         django_log.info('serialiser data-----> %s' % str(serializer.data))
         send_msg_data = copy.copy(serializer.data)
-        django_log.info('send msg data ----->%s' % str(send_msg_data))
         save_msg_data = copy.copy(serializer.data)
         save_msg_data.pop('isLegal')
-        django_log.info('serialiser again-----> %s' % str(save_msg_data))
         try:
             record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
             # B库存储
