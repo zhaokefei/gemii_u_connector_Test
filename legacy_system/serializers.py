@@ -156,4 +156,4 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatMessageModel
         fields = ('Content', 'MsgType', 'AppMsgType', 'UserDisplayName', 'MsgId', 'CreateTime', 'RoomID',
-                  'MemberID', 'UserNickName', 'MemberIcon')
+                  'MemberID', 'UserNickName', 'MemberIcon', 'isLegal')
