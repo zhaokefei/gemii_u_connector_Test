@@ -543,7 +543,8 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         if db_gemii_choice == 'gemii_b' and not userinfo_raw:
             roommember_data['is_legal'] = '0'
 
-        whilelist = WhileList.objects.filter(vcChatRoomSerialNo=roominfo_raw.U_RoomID, vcWxUserSerialNo=member['vcSerialNo'])
+        whilelist = WhileList.objects.filter(vcChatRoomSerialNo=roominfo_raw.U_RoomID,
+                                             vcWxUserSerialNo=member['vcSerialNo'], flag='1')
         if whilelist.exists():
             roommember_data['is_legal'] = '2'
 
