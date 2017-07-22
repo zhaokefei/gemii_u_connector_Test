@@ -6,6 +6,7 @@ Created on 2017年5月31日
 '''
 import logging
 import json
+import copy
 import redis
 from django.conf import settings
 from django.dispatch.dispatcher import receiver
@@ -38,6 +39,10 @@ def pub_message(sender, instance=None, created=False, **kwargs):
         django_log.info('instance %s' % str(instance))
         serializer = LegacyChatRoomMessageSerializer(instance)
         django_log.info('serialiser-----> %s' % str(serializer.data))
+        send_msg_data = copy.copy(serializer.data)
+        django_log.info('send msg data ----->%s' % str(send_msg_data))
+        is_legal = serializer.data.pop("isLegal")
+        django_log.info('serialiser again-----> %s' % str(serializer.data))
         try:
             record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
             # B库存储
@@ -51,7 +56,7 @@ def pub_message(sender, instance=None, created=False, **kwargs):
                 django_log.info('发送消息至A库Redis')
                 connect_pool_a = connect_pool(settings.REDIS_CONFIG['redis_a'])
                 publisher = redis.Redis(connection_pool=connect_pool_a)
-                publisher.publish('p20170701_', json.dumps(serializer.data))
+                publisher.publish('p20170701_', json.dumps(send_msg_data))
             # elif record.serNum == 'B':
             else:
                 # 需要存数据至B库
@@ -63,7 +68,7 @@ def pub_message(sender, instance=None, created=False, **kwargs):
                 django_log.info('发送消息至B库Redis')
                 connect_pool_b = connect_pool(settings.REDIS_CONFIG['redis_b'])
                 publisher = redis.Redis(connection_pool=connect_pool_b)
-                publisher.publish('p20170701_', json.dumps(serializer.data))
+                publisher.publish('p20170701_', json.dumps(send_msg_data))
 
         except Exception, e:
             django_log.info('用户发送消息，存储消息时出错，错误为: %s' % e.message)

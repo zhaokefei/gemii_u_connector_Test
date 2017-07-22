@@ -42,6 +42,7 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     MemberID = serializers.SerializerMethodField('get_member_id')
     UserNickName = serializers.SerializerMethodField('get_nickname')
     MemberIcon = serializers.SerializerMethodField('get_mermer_icon')
+    isLegal = serializers.SerializerMethodField('get_is_legal')
 
     _db_gemii_choice = None
     _info = None
@@ -145,6 +146,12 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     def get_creat_time(self, obj):
         return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+    def get_is_legal(self, obj):
+        room_id = self.get_room_id(obj)
+        u_userid = str(obj.vcFromWxUserSerialNo)
+        db_gemii_choice = self.get_sernum(obj)
+        info = self._get_member_info(room_id,u_userid,db_gemii_choice)
+        return info.is_legal if info else ""
 
     class Meta:
         model = ChatMessageModel
