@@ -48,7 +48,7 @@ class GemiiRobotAdmin(admin.ModelAdmin):
 
 class WhileListAdmin(admin.ModelAdmin):
     list_filter = ('flag',)
-    list_display = ('vcChatRoomSerialNo', 'vcWxUserSerialNo')
+    list_display = ('vcChatRoomSerialNo', 'vcWxUserSerialNo', 'flag')
     search_fields = ('vcChatRoomSerialNo', 'vcWxUserSerialNo')
 
 admin.site.register(ChatMessageModel, ChatMessageModelAdmin)
