@@ -335,7 +335,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 fatherrobot = GemiiRobot.objects.filter(vcRobotSerialNo=vcFatherWxUserSerialNo)
                 if fatherrobot.exists():
                     vcName = fatherrobot.first().vcName
-                    member_log.info('机器人 %s 拉人入群 %s' % (str(vcName), str(vcFatherWxUserSerialNo)))
+                    member_log.info('机器人 %s 拉人入群 %s' % (vcName.encode('utf-8'), vcFatherWxUserSerialNo.encode('utf-8')))
                     continue
 
                 if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
