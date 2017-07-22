@@ -23,7 +23,7 @@ from rest_framework.generics import GenericAPIView
 from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
-    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom, GemiiRobot
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom, GemiiRobot,WhileList
 from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii, \
     Monitor, MonitorRoom
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
@@ -542,6 +542,10 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
 
         if db_gemii_choice == 'gemii_b' and not userinfo_raw:
             roommember_data['is_legal'] = '0'
+
+        whilelist = WhileList.objects.filter(vcChatRoomSerialNo=roominfo_raw.U_RoomID, vcWxUserSerialNo=member['vcSerialNo'])
+        if whilelist.exists():
+            roommember_data['is_legal'] = '2'
 
         gemii_data = copy.copy(roommember_data)
 
