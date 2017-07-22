@@ -150,3 +150,11 @@ class GemiiRobot(models.Model):
     class Meta:
         db_table = 'gemiirobot'
         verbose_name_plural = verbose_name = u'景栗设备'
+
+class WhileList(models.Model):
+    vcChatRoomSerialNo = models.CharField(max_length=50, verbose_name=u'群编号')
+    vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'用户编号')
+
+    class Meta:
+        db_table = 'WhileList'
+        verbose_name_plural = verbose_name = u'白名单列表'
