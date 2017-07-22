@@ -71,6 +71,6 @@ def pub_message(sender, instance=None, created=False, **kwargs):
                 publisher.publish('p20170701_', json.dumps(send_msg_data))
 
         except Exception, e:
-            django_log.info('用户发送消息，存储消息时出错，错误为: %s' % e.message)
+            django_log.info('fail message %s' % e.message)
 
 
