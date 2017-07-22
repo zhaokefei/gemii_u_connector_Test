@@ -332,9 +332,12 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
                 # 机器人拉人不踢
                 vcFatherWxUserSerialNo = member["vcFatherWxUserSerialNo"]
+                if not vcFatherWxUserSerialNo:
+                    member_log.info('no vcFatherWxUserSerialNo')
+                    continue
                 member_log.info('vcFatherWxUserSerialNo %s' % str(vcFatherWxUserSerialNo))
                 fatherrobot = GemiiRobot.objects.filter(vcRobotSerialNo=vcFatherWxUserSerialNo)
-                if fatherrobot.exists() or not vcFatherWxUserSerialNo:
+                if fatherrobot.exists():
                     vcName = fatherrobot.first().vcName
                     member_log.info('机器人 %s 拉人入群 %s' % (vcName.encode('utf-8'), vcFatherWxUserSerialNo.encode('utf-8')))
                     continue
