@@ -95,7 +95,7 @@ CRONJOBS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'u_connector_test',
+        'NAME': 'u_connector',
         'USER': 'root',
         'PASSWORD': 't721si74',
         'HOST': 'gemii.chnh6yhldzwc.rds.cn-north-1.amazonaws.com.cn',

@@ -424,12 +424,20 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 str(data['vcWxUserSerialNo']), str(data['vcChatRoomSerialNo'])))
                 continue
             else:
-                WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid).delete()
-                WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid).delete()
+                roomid = room_record.RoomID
+                WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
+                WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
+                self.delete_member_cache(roomid, u_userid, db_gemii_choice)
             count += 1
             WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid).update(currentCount=F('currentCount') - 1)
             WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(currentCount=F('currentCount') - 1)
         member_log.info('成功处理退群成员（%s）个' % count)
+
+    def delete_member_cache(self, roomid, u_userid, db_gemii_choice):
+        key = 'wechatroommemberinfo_data:{room_id}:{user_id}:{db_gemii_choice}'.format(room_id=roomid,
+                                                                                       user_id=u_userid,
+                                                                                       db_gemii_choice=db_gemii_choice)
+        return cache.delete(key)
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
