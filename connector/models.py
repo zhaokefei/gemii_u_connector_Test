@@ -154,6 +154,7 @@ class GemiiRobot(models.Model):
 class WhileList(models.Model):
     vcChatRoomSerialNo = models.CharField(max_length=50, verbose_name=u'群编号')
     vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'用户编号')
+    flag = models.CharField(max_length=10, default=1, verbose_name=u'状态')
 
     class Meta:
         db_table = 'WhileList'

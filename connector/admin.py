@@ -47,6 +47,7 @@ class GemiiRobotAdmin(admin.ModelAdmin):
     search_fields = ('vcRobotSerialNo', 'vcName')
 
 class WhileListAdmin(admin.ModelAdmin):
+    list_filter = ('flag',)
     list_display = ('vcChatRoomSerialNo', 'vcWxUserSerialNo')
     search_fields = ('vcChatRoomSerialNo', 'vcWxUserSerialNo')
 
