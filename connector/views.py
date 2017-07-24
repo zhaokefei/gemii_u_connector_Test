@@ -123,7 +123,8 @@ class KickingSendMsg(object):
             "CreateTime": time.strftime('%Y-%m-%d %H:%M:%S'),
             "RoomID": roomid,
             "MemberID": "",
-            "UserNickName": monitorname
+            "UserNickName": monitorname,
+            "isLegal": "1"
         }
 
         if sernum == 'A':
@@ -349,11 +350,6 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     member_log.info('机器人 %s 拉人入群 %s' % (vcName.encode('utf-8'), vcFatherWxUserSerialNo.encode('utf-8')))
                     continue
 
-                # if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
-                #     member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
-                #     response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
-                #     member_log.info('response %s' % str(response))
-
                 tickCfg = Tick()
                 ayd_task = tickCfg.get_ayd()
                 # msj_task = tickCfg.get_msj()
@@ -471,18 +467,10 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
 
         for member in members:
             serializer = self.get_serializer(data=member)
-            django_log.info('member %s' % member)
             if serializer.is_valid():
                 self.perform_create(serializer)
                 if chatroom:
                     chatroom.member.add(serializer.instance)
-            django_log.info('serializer %s' % serializer.errors)
-            # if chatroom:
-            #     django_log.info('关联到群')
-            #     if not chatroom.member.filter(vcSerialNo=member['vcSerialNo']).exists():
-            #         django_log.info('add member %s' % serializer.instance)
-            #         chatroom.member.add(serializer.instance)
-            #         django_log.info('end')
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
         self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
