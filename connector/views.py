@@ -473,12 +473,11 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
             serializer = self.get_serializer(data=member)
             django_log.info('member %s' % member)
             if serializer.is_valid():
-                django_log.info('enter member')
                 self.perform_create(serializer)
-                django_log.info('serializer %s' % serializer.instance)
-                django_log.info('chatroomid %s' % chatroom_id)
-                if chatroom:
-                    django_log.info('关联到群')
+            if chatroom:
+                django_log.info('关联到群')
+                if not chatroom.member.filter(vcSerialNo=member['vcSerialNo']).exists():
+                    django_log.info('add member')
                     chatroom.member.add(serializer.instance)
                     django_log.info('end')
             django_log.info('error %s' % serializer.errors)
