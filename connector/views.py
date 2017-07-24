@@ -1081,7 +1081,7 @@ class Qrcode(View):
             qr.make(fit=True)
             img = qr.make_image()
 
-            fn = os.path.join(dir_path, filename, 'png')
+            fn = os.path.join(dir_path, filename, '.png')
             img.save(fn)
 
         rsp = {
