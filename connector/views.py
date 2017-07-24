@@ -123,17 +123,18 @@ class KickingSendMsg(object):
             "CreateTime": time.strftime('%Y-%m-%d %H:%M:%S'),
             "RoomID": roomid,
             "MemberID": "",
-            "UserNickName": monitorname,
-            "isLegal": "1"
+            "UserNickName": monitorname
         }
 
         if sernum == 'A':
             WeChatRoomMessageGemii.objects.using('gemii').create(**robot_msg)
             redis_a = KickingRedis(settings.REDIS_CONFIG['redis_a'])
+            robot_msg['isLegal'] = "1"
             redis_a.redis.publish(redis_a.channel_pub, json.dumps(robot_msg))
         else:
             WeChatRoomMessageGemii.objects.using('gemii_b').create(**robot_msg)
             redis_b = KickingRedis(settings.REDIS_CONFIG['redis_b'])
+            robot_msg['isLegal'] = "1"
             redis_b.redis.publish(redis_b.channel_pub, json.dumps(robot_msg))
 
 
