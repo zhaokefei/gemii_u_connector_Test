@@ -44,6 +44,7 @@ from legacy_system.publish import pub_message
 django_log = logging.getLogger('django')
 message_log = logging.getLogger('message')
 member_log = logging.getLogger('member')
+sql_log = logging.getLogger('sql')
 
 CODE_STR = string.ascii_letters + string.digits
 
@@ -1058,6 +1059,8 @@ class Qrcode(View):
                 "resultCode": "-1",
                 "desc": "缺少必要的参数",
             }
+            sql_log.info('accep java data')
+            sql_log.info(request.POST)
             return HttpResponse(json.dumps(rsp), content_type="application/json")
 
         dir_path = '/var/helper/qrcords/%s' % dirname
