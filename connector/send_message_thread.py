@@ -90,12 +90,14 @@ class DataReceiveThread(threading.Thread):
                 django_log.info('开始进入A库存数据')
                 WeChatRoomMessageGemii.objects.create(**robot_msg)
                 django_log.info('库A数据插入完成')
+                robot_msg['isLegal'] = "1"
                 self.redis.publish(self.channel_pub, json.dumps(robot_msg))
             # elif self.type == 'B':
             else:
                 django_log.info('开始进入B库存数据')
                 WeChatRoomMessageGemii.objects.using('gemii_b').create(**robot_msg)
                 django_log.info('库B数据插入完成')
+                robot_msg['isLegal'] = "1"
                 self.redis.publish(self.channel_pub, json.dumps(robot_msg))
         else:
             django_log.info('消息存库失败------>由创返回码为 %s' % str(response))
