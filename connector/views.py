@@ -263,6 +263,13 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
         for member in members:
             u_roomid = member['vcChatRoomSerialNo']
             u_userid = member['vcWxUserSerialNo']
+
+            if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
+                member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
+                response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+                member_log.info('response %s' % str(response))
+                continue
+
             try:
                 chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
                 serNum = str(chatroom_record.serNum)
@@ -342,10 +349,10 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     member_log.info('机器人 %s 拉人入群 %s' % (vcName.encode('utf-8'), vcFatherWxUserSerialNo.encode('utf-8')))
                     continue
 
-                if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
-                    member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
-                    response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
-                    member_log.info('response %s' % str(response))
+                # if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
+                #     member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
+                #     response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+                #     member_log.info('response %s' % str(response))
 
                 tickCfg = Tick()
                 ayd_task = tickCfg.get_ayd()
