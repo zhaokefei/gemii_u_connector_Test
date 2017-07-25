@@ -10,21 +10,24 @@ from django.http.response import HttpResponse
 
 view_log = logging.getLogger('view')
 
+
 def view_exception_handler(view_func):
     """
     view异常处理
     """
 
-    def wrapped_view(self,request,*args, **kwargs):
+    def wrapped_view(self, request, *args, **kwargs):
 
         try:
-            return view_func(self,request,*args, **kwargs)
-        except Exception,e:
+            return view_func(self, request, *args, **kwargs)
+        except Exception, e:
+            is_print = True
             if hasattr(request, 'data') and 'strContext' in request.data:
                 datas = request.data['strContext']
                 view_log.info('accept strContext data:')
                 view_log.info(datas)
-            if hasattr(request, 'POST') and 'strContext' in request.POST:
+                is_print = False
+            if hasattr(request, 'POST') and 'strContext' in request.POST and is_print:
                 datas = request.POST['strContext']
                 view_log.info('accept strContext data:')
                 view_log.info(datas)
