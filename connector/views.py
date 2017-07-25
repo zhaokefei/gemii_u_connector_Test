@@ -1024,15 +1024,27 @@ class RebotRoomView(View):
     def batch_create(self,request):
         data = json.loads(request.POST['strContext'], strict=False)
         vcrobotserialno = data['vcRobotSerialNo']
-        nodatas = data['NoData']
-        datas = data['Data']
-        RobotChatRoom.objects.filter(vcRobotSerialNo=vcrobotserialno).delete()
+        nodatas = data.get('NoData', [])
+        datas = data.get('Data', [])
         create_list = []
+
         for nodata in nodatas:
-            create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=nodata['vcChatRoomSerialNo'], state='0'))
+            robot_chatroom = RobotChatRoom.objects.filter(vcRobotSerialNo=vcrobotserialno,
+                                                          vcChatRoomSerialNo=nodata['vcChatRoomSerialNo'])
+            if robot_chatroom.exists():
+                robot_chatroom.update(state='0')
+            else:
+                create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=nodata['vcChatRoomSerialNo'], state='0'))
+
         for data in datas:
-            create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=data['vcChatRoomSerialNo'], state='1'))
-        RobotChatRoom.objects.bulk_create(create_list)
+            robot_chatroom = RobotChatRoom.objects.filter(vcRobotSerialNo=vcrobotserialno,
+                                                          vcChatRoomSerialNo=data['vcChatRoomSerialNo'])
+            if robot_chatroom.exists():
+                robot_chatroom.update(state='1')
+            else:
+                create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=data['vcChatRoomSerialNo'], state='1'))
+        if create_list:
+            RobotChatRoom.objects.bulk_create(create_list)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
@@ -1076,6 +1088,7 @@ class Qrcode(View):
     def qrcode_make(self, request):
         import qrcode
         import os
+        import shutil
         from connector.utils import short_url
         try:
             data = request.body
@@ -1097,6 +1110,8 @@ class Qrcode(View):
 
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
+        else:
+            shutil.rmtree(dir_path)
 
         for info in infos:
             params = info['params']
