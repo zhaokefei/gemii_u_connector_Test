@@ -7,7 +7,7 @@ Created on 2017年5月8日
 import base64
 from rest_framework import serializers, validators
 from .models import ChatMessageModel, URobotModel, ChatRoomModel,\
-IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo
+IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RobotBlockedModel
 
 def decode_base64(chars):
     if type(chars) is unicode:
@@ -77,9 +77,22 @@ class MemberInfoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         nickname = decode_base64(validated_data['vcBase64NickName']).decode('utf-8')
         nickname = nickname.strip('\n')
-        validated_data['vcNickName'] = nickname          
+        validated_data['vcNickName'] = nickname
         return super(MemberInfoSerializer, self).create(validated_data)
 
     class Meta:
         model = MemberInfo
         fields ='__all__'
+
+
+class RobotBlockedSerialize(serializers.ModelSerializer):
+    dtCreateDate = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', input_formats=('%Y/%m/%d %H:%M:%S', ''), allow_null=True)
+    def create(self, validated_data):
+        nickname = decode_base64(validated_data['vcBase64NickName']).decode('utf-8')
+        nickname = nickname.strip('\n')
+        validated_data['vcNickName'] = nickname
+        return super(RobotBlockedSerialize, self).create(validated_data)
+
+    class Meta:
+        model = RobotBlockedModel
+        fields = '__all__'

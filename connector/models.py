@@ -63,9 +63,9 @@ class IntoChatRoomMessageModel(models.Model):
     """
     vcSerialNo = models.CharField(max_length=50, verbose_name=u'拉群编号')
     vcRobotSerialNo = models.CharField(max_length=50, verbose_name=u'机器人编号')
-    vcName = models.CharField(max_length=50, verbose_name=u'群昵称')   
-    vcBase64Name = models.CharField(max_length=100, verbose_name=u'群base64编码后的昵称')    
-    vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'拉群用户的微信编号')  
+    vcName = models.CharField(max_length=50, verbose_name=u'群昵称')
+    vcBase64Name = models.CharField(max_length=100, verbose_name=u'群base64编码后的昵称')
+    vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'拉群用户的微信编号')
     vcNickName = models.CharField(max_length=100, verbose_name=u'用户昵称')
     vcBase64NickName = models.CharField(max_length=100, verbose_name=u'用户base64编码后的昵称')
     vcHeadImgUrl = models.CharField(max_length=1000, verbose_name=u'用户头像')
@@ -159,3 +159,17 @@ class WhileList(models.Model):
     class Meta:
         db_table = 'WhileList'
         verbose_name_plural = verbose_name = u'白名单列表'
+
+class RobotBlockedModel(models.Model):
+    vcSerialNo = models.CharField(max_length=50, verbose_name=u'机器人编号')
+    nChatRoomCount = models.CharField(max_length=5, verbose_name=u'开通的群数量')
+    vcNickName = models.CharField(max_length=50, verbose_name=u'机器人昵称')
+    vcBase64NickName = models.CharField(max_length=100, verbose_name=u'机器人base64编码后的昵称')
+    vcHeadImages = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'助手头像')
+    vcCodeImages = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'助手二维码')
+    nStatus = models.CharField(max_length=10, null=True, blank=True, verbose_name=u'助手状态')
+    dtCreateDate = models.DateTimeField(null=True, blank=True, verbose_name=u'创建时间')
+
+    class Meta:
+        db_table = 'robotblocked'
+        verbose_name_plural = verbose_name = u'机器人被封信息'

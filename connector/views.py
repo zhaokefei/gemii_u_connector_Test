@@ -23,13 +23,14 @@ from rest_framework.generics import GenericAPIView
 from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
-    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom, GemiiRobot,WhileList
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom, GemiiRobot,\
+    WhileList, RobotBlockedModel
 from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii, \
     Monitor, MonitorRoom
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
 from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
-    DropOutChatRoomSerializer, MemberInfoSerializer
+    DropOutChatRoomSerializer, MemberInfoSerializer, RobotBlockedSerialize
 
 from connector.forms import KickingForm
 
@@ -456,6 +457,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
     queryset = MemberInfo.objects.all()
     serializer_class = MemberInfoSerializer
+
     def batch_create(self, request, members=None, chatroom_id=None):
         if not members or not chatroom_id:
             django_log.info(u'没有群（%s）成员：' % (chatroom_id))
@@ -470,19 +472,25 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         for member in members:
             serializer = self.get_serializer(data=member)
             if serializer.is_valid():
-                django_log.info('enter is_valid')
                 self.perform_create(serializer)
                 if chatroom:
-                    django_log.info('insert member to chatroom')
                     chatroom.member.add(serializer.instance)
-            django_log.info('errors %s' % serializer.errors)
+            else:
+                instance = MemberInfo.objects.filter(vcSerialNo=member['vcSerialNo'])
+                member['dtCreateDate'] = commont_tool.time_strf(member['dtCreateDate'])
+                member['dtLastMsgDate'] = commont_tool.time_strf(member['dtLastMsgDate'])
+                instance.update(**member)
+                if chatroom:
+                    if not chatroom.member.filter(vcSerialNo=member['vcSerialNo']).exists():
+                        print 'enter inset chatroom'
+                        chatroom.member.add(instance.first())
+
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
         self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
-
         data = json.loads(request.data['strContext'], strict=False)
         members = data['Data']
         chatroom_id = data['vcChatRoomSerialNo']
@@ -1025,6 +1033,23 @@ class RebotRoomView(View):
         for data in datas:
             create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=data['vcChatRoomSerialNo'], state='1'))
         RobotChatRoom.objects.bulk_create(create_list)
+        return HttpResponse('SUCCESS')
+
+    @view_exception_handler
+    def post(self, request):
+        return self.batch_create(request)
+
+class RobotBlockedView(GenericAPIView, mixins.CreateModelMixin):
+    queryset = RobotBlockedModel.objects.all()
+    serializer_class = RobotBlockedSerialize
+
+    def batch_create(self, request):
+        data = json.loads(request.POST['strContext'], strict=False)
+        robotinfo = data['Data'][0]['RobotInfo']
+        for robot in robotinfo:
+            serializer = self.get_serializer(data=robot)
+            if serializer.is_valid():
+                self.perform_create(serializer)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
