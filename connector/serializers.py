@@ -80,12 +80,6 @@ class MemberInfoSerializer(serializers.ModelSerializer):
         validated_data['vcNickName'] = nickname          
         return super(MemberInfoSerializer, self).create(validated_data)
 
-    def run_validators(self, value):
-        for validator in self.validators:
-            if isinstance(validator, validators.UniqueTogetherValidator):
-                self.validators.remove(validator)
-        super(MemberInfoSerializer, self).run_validators(value)
-
     class Meta:
         model = MemberInfo
         fields ='__all__'
