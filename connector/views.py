@@ -477,8 +477,10 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
                     chatroom.member.add(serializer.instance)
             else:
                 instance = MemberInfo.objects.filter(vcSerialNo=member['vcSerialNo'])
-                member['dtCreateDate'] = commont_tool.time_strf(member['dtCreateDate'])
-                member['dtLastMsgDate'] = commont_tool.time_strf(member['dtLastMsgDate'])
+                if member['dtCreateDate']:
+                    member['dtCreateDate'] = commont_tool.time_strf(member['dtCreateDate'])
+                if member['dtLastMsgDate']:
+                    member['dtLastMsgDate'] = commont_tool.time_strf(member['dtLastMsgDate'])
                 instance.update(**member)
                 if chatroom:
                     if not chatroom.member.filter(vcSerialNo=member['vcSerialNo']).exists():
