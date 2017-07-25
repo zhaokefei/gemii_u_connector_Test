@@ -5,7 +5,7 @@ Created on 2017年5月8日
 @author: hepeng
 '''
 import base64
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from .models import ChatMessageModel, URobotModel, ChatRoomModel,\
 IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo
 
@@ -79,6 +79,17 @@ class MemberInfoSerializer(serializers.ModelSerializer):
         nickname = nickname.strip('\n')
         validated_data['vcNickName'] = nickname          
         return super(MemberInfoSerializer, self).create(validated_data)
+
+    def run_validators(self, value):
+        for validator in self.validators:
+            if isinstance(validator, validators.UniqueTogetherValidator):
+                self.validators.remove(validator)
+        super(MemberInfoSerializer, self).run_validators(value)
+
+    def create(self, validated_data):
+        instance, _ = MemberInfo.objects.get_or_create(**validated_data)
+        return instance
+
     class Meta:
         model = MemberInfo
         fields ='__all__'
