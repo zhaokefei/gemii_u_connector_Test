@@ -24,6 +24,10 @@ def view_exception_handler(view_func):
                 datas = request.data['strContext']
                 view_log.info('accept strContext data:')
                 view_log.info(datas)
+            if hasattr(request, 'POST') and 'strContext' in request.POST:
+                datas = request.POST['strContext']
+                view_log.info('accept strContext data:')
+                view_log.info(datas)
             view_log.info(traceback.format_exc())
             return HttpResponse('SUCCESS')
 
