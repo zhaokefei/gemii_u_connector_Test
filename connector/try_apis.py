@@ -72,9 +72,13 @@ def get_chatroom_list_api():
     return response
 
 if __name__ == '__main__':
-    pass
-    # create_chatroom_task_apis()
 
+
+    # print apis.room_over('800F4D063D52E093DC7BBD5448143E11')
+    # get_msg_robot_qrcode_api()
+    # create_chatroom_task_apis()
+    # print apis.get_chatroom_list('49FFAEFA9D274C523FCE70B07A8E99C5')
+    print apis.open_chatroom('201707111100000081')
     # {
     #     "code": 0,
     #     "msg": "",
@@ -202,7 +206,7 @@ if __name__ == '__main__':
 
     # {"nResult": "1", "vcResult": "成功", "Data": [{}]}
 
-    send_chat_message_api()
+    # send_chat_message_api()
 
 
     # {"nResult": "1", "vcResult": "成功", "Data": [{}]}

@@ -16,16 +16,21 @@ def get_short_url_from_sina(url):
     get shor_url from sina
     '''
     flag = 0
+    if isinstance(url, unicode):
+        url = url.encode('utf-8')
     while flag < 3:
         try:
             data = get('http://wx.gemii.cc/wx/long2short?long_url=%s' % quote(url))
             data = json.loads(data)
         except:
+            log.info('获取短链fault')
+            log.info(traceback.format_exc())
             return ''
         else:
             if data:
                 short_url = str(data.get('data').get('short_url'))
                 if short_url != 'http://t.cn/':
+                    log.info('获取短链success')
                     return short_url
             flag += 1
             time.sleep(1)

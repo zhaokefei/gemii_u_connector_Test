@@ -1053,17 +1053,19 @@ class Qrcode(View):
         import os
         from connector.utils import short_url
         try:
-            prefix = request.POST['prefix']
-            suffix = request.POST['suffix']
-            dirname = request.POST['dirname']
-            infos = request.POST['infos']
+            data = request.body
+            data = json.loads(data)
+            prefix = data['prefix']
+            suffix = data['suffix']
+            dirname = data['dirname']
+            infos = data['infos']
         except:
             rsp = {
                 "resultCode": "-1",
                 "desc": "缺少必要的参数",
             }
             sql_log.info('accep java data')
-            sql_log.info(request.POST)
+            sql_log.info(request.body)
             return HttpResponse(json.dumps(rsp), content_type="application/json")
 
         dir_path = '/var/helper/qrcords/%s' % dirname
@@ -1086,8 +1088,8 @@ class Qrcode(View):
             qr.add_data(url)
             qr.make(fit=True)
             img = qr.make_image()
-
-            fn = os.path.join(dir_path, filename, '.png')
+            filename = '%s%s' % (filename, '.png')
+            fn = os.path.join(dir_path, filename)
             img.save(fn)
 
         rsp = {
