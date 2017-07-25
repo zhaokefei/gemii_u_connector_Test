@@ -1016,8 +1016,8 @@ class RebotRoomView(View):
     def batch_create(self,request):
         data = json.loads(request.POST['strContext'], strict=False)
         vcrobotserialno = data['vcRobotSerialNo']
-        nodatas = data['NoData']
-        datas = data['Data']
+        nodatas = data.get('NoData', [])
+        datas = data.get('Data', [])
         create_list = []
 
         for nodata in nodatas:
