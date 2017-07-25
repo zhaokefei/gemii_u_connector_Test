@@ -479,8 +479,6 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
                 instance = MemberInfo.objects.filter(vcSerialNo=member['vcSerialNo'])
                 if member['dtCreateDate']:
                     member['dtCreateDate'] = commont_tool.time_strf(member['dtCreateDate'])
-                else:
-                    member.pop('dtCreateDate')
                 if member['dtLastMsgDate']:
                     member['dtLastMsgDate'] = commont_tool.time_strf(member['dtLastMsgDate'])
                 else:
