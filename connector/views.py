@@ -467,9 +467,9 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
     def drop_member_update_chatroom_member(self, chatroom, u_userid):
         """删除成员更新群信息member中间表"""
-        if chatroom:
-            if chatroom.member.filter(vcSerialNo=u_userid).exists():
-                chatroom.member.filter(vcSerialNo=u_userid).delete()
+        instance = chatroom.member.filter(vcSerialNo=u_userid)
+        if chatroom and instance.exists():
+            chatroom.member.remove(instance.first())
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
