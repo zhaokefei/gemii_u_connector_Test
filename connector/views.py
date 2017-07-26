@@ -283,7 +283,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
         for member in members:
             u_roomid = member['vcChatRoomSerialNo']
             u_userid = member['vcWxUserSerialNo']
-
+            nickname = commont_tool.decode_base64(member['vcBase64NickName'])
             if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
                 member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
                 response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
@@ -324,7 +324,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
                 roommerber_data = {
                     'RoomID': room_record.RoomID,
-                    'NickName': commont_tool.decode_base64(member['vcBase64NickName']),
+                    'NickName': nickname,
                     'U_UserID': member['vcWxUserSerialNo'],
                     'member_icon': member['vcHeadImages'],
                     'DisplayName': member['vcNickName'],
@@ -334,6 +334,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 if room_member.exists():
                     member_log.info('roommember数据已存在（RoomID：%s,U_UserID:%s）' % (
                     str(room_record.RoomID), str(u_userid)))
+                    room_member.update(NickName=nickname)
                     continue
 
                 if user_record:
