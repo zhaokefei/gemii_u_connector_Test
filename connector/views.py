@@ -254,7 +254,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 member_defaults['vcSerialNo'] = member_defaults.pop('vcWxUserSerialNo')
                 member_defaults['nMsgCount'] = 0
                 member_defaults['dtCreateDate'] = datetime.datetime.now()
-                memberinfo = MemberInfo.objects.update_or_create(vcSerialNo=member_defaults['vcSerialNo'],
+                memberinfo, is_create = MemberInfo.objects.update_or_create(vcSerialNo=member_defaults['vcSerialNo'],
                                                                  defaults=member_defaults)
                 try:
                     chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
