@@ -18,7 +18,7 @@ class URobotModelAdmin(admin.ModelAdmin):
     search_fields = ('vcSerialNo', 'vcNickName',)
     
 class ChatRoomModelAdmin(admin.ModelAdmin):
-    list_display = ('vcChatRoomSerialNo', 'vcName', 'vcRobotSerialNo')
+    list_display = ('vcChatRoomSerialNo', 'vcName', 'vcRobotSerialNo', 'serNum')
     search_fields = ('vcChatRoomSerialNo', 'vcName', 'vcRobotSerialNo')
 
 class IntoChatRoomMessageModelAdmin(admin.ModelAdmin):

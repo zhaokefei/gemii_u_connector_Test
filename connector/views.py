@@ -327,14 +327,24 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     'NickName': nickname,
                     'U_UserID': member['vcWxUserSerialNo'],
                     'member_icon': member['vcHeadImages'],
-                    'DisplayName': member['vcNickName'],
+                    'DisplayName': nickname,
                 }
 
                 room_member = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid)
+                room_member_wyeth = WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid)
+
+                is_exist = False
                 if room_member.exists():
+                    room_member.update(NickName=nickname, DisplayName=nickname)
+                    is_exist = True
+
+                if room_member_wyeth.exists():
+                    room_member_wyeth.update(NickName=nickname, DisplayName=nickname)
+                    is_exist = True
+
+                if is_exist:
                     member_log.info('roommember数据已存在（RoomID：%s,U_UserID:%s）' % (
-                    str(room_record.RoomID), str(u_userid)))
-                    room_member.update(NickName=nickname)
+                        str(room_record.RoomID), str(u_userid)))
                     continue
 
                 if user_record:
@@ -585,12 +595,13 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
         WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
 
     def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
+        nickname = commont_tool.decode_base64(member['vcBase64NickName'])
         roommember_data = {
             'RoomID': roominfo_raw.RoomID,
-            'NickName': commont_tool.decode_base64(member['vcBase64NickName']),
+            'NickName': nickname,
             'U_UserID': member['vcSerialNo'],
             'member_icon': member['vcHeadImages'],
-            'DisplayName': member['vcNickName'],
+            'DisplayName': nickname,
         }
 
         if userinfo_raw:
