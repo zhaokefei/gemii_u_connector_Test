@@ -519,7 +519,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
             #             chatroom.member.add(instance.first())
 
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
-        # self.handle_member_room(members, chatroom_id)
+        self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
