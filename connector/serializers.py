@@ -74,11 +74,14 @@ class DropOutChatRoomSerializer(serializers.ModelSerializer):
 class MemberInfoSerializer(serializers.ModelSerializer):
     dtLastMsgDate = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', input_formats=('%Y/%m/%d %H:%M:%S', ''), allow_null=True)
     dtCreateDate = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', input_formats=('%Y/%m/%d %H:%M:%S', ''), allow_null=True)
+    vcSerialNo = serializers.CharField()
     def create(self, validated_data):
         nickname = decode_base64(validated_data['vcBase64NickName']).decode('utf-8')
         nickname = nickname.strip('\n')
         validated_data['vcNickName'] = nickname
-        return super(MemberInfoSerializer, self).create(validated_data)
+        vcSerialNo = validated_data.pop('vcSerialNo')
+        instance, created = MemberInfo.objects.update_or_create(vcSerialNo=vcSerialNo, defaults=validated_data)
+        return instance
 
     class Meta:
         model = MemberInfo

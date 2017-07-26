@@ -480,7 +480,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
         return HttpResponse('SUCCESS')
 
 
-class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
+class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.UpdateModelMixin):
     queryset = MemberInfo.objects.all()
     serializer_class = MemberInfoSerializer
 
@@ -495,28 +495,31 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         except ChatRoomModel.DoesNotExist:
             chatroom = ''
 
+        if chatroom:
+            chatroom.member.clear()
+
         for member in members:
             serializer = self.get_serializer(data=member)
             if serializer.is_valid():
                 self.perform_create(serializer)
                 if chatroom:
                     chatroom.member.add(serializer.instance)
-            else:
-                instance = MemberInfo.objects.filter(vcSerialNo=member['vcSerialNo'])
-                if member['dtCreateDate']:
-                    member['dtCreateDate'] = commont_tool.time_strf(member['dtCreateDate'])
-                if member['dtLastMsgDate']:
-                    member['dtLastMsgDate'] = commont_tool.time_strf(member['dtLastMsgDate'])
-                else:
-                    member.pop('dtLastMsgDate')
-                instance.update(**member)
-                if chatroom:
-                    if not chatroom.member.filter(vcSerialNo=member['vcSerialNo']).exists():
-                        print 'enter inset chatroom'
-                        chatroom.member.add(instance.first())
+
+            # else:
+            #     instance = MemberInfo.objects.filter(vcSerialNo=member['vcSerialNo'])
+            #     if member['dtCreateDate']:
+            #         member['dtCreateDate'] = commont_tool.time_strf(member['dtCreateDate'])
+            #     if member['dtLastMsgDate']:
+            #         member['dtLastMsgDate'] = commont_tool.time_strf(member['dtLastMsgDate'])
+            #     else:
+            #         member.pop('dtLastMsgDate')
+            #     instance.update(**member)
+            #     if chatroom:
+            #         if not chatroom.member.filter(vcSerialNo=member['vcSerialNo']).exists():
+            #             chatroom.member.add(instance.first())
 
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
-        self.handle_member_room(members, chatroom_id)
+        # self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
@@ -605,7 +608,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
         gemii_data = copy.copy(roommember_data)
 
         gemii_data['MemberID'] = member['vcSerialNo']
-        gemii_data['enter_group_time'] = member['dtCreateDate']
+        gemii_data['enter_group_time'] = commont_tool.time_strf(member['dtCreateDate'])
 
         WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
         WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
