@@ -8,6 +8,7 @@ import datetime
 import time
 import logging
 from connector import apis
+import base64
 
 message_log = logging.getLogger('message')
 
@@ -48,3 +49,17 @@ def rece_msg(u_roomid):
     message_log.info('激活消息处理 %s' % str(u_roomid))
     rsp = apis.recive_msg_open(u_roomid)
     return rsp
+
+def decode_base64(chars):
+    if isinstance(chars, str):
+        chars = chars.decode('utf-8').encode('utf8')
+    if isinstance(chars, unicode):
+        chars = chars.encode('utf8')
+    return base64.urlsafe_b64decode(chars)
+
+def encode_base64(chars):
+    if isinstance(chars, str):
+        chars = chars.decode('utf-8').encode('utf8')
+    if isinstance(chars, unicode):
+        chars = chars.encode('utf8')
+    return base64.urlsafe_b64encode(chars)
