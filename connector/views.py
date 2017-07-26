@@ -247,6 +247,22 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 self.perform_create(serializer)
+
+                chatroom_id = data['vcChatRoomSerialNo']
+                member_defaults = copy.copy(data)
+                member_defaults.pop('vcChatRoomSerialNo')
+                member_defaults['vcSerialNo'] = member_defaults.pop('vcWxUserSerialNo')
+                member_defaults['nMsgCount'] = 0
+                member_defaults['dtCreateDate'] = datetime.datetime.now()
+                memberinfo = MemberInfo.objects.update_or_create(vcSerialNo=member_defaults['vcSerialNo'],
+                                                                 defaults=member_defaults)
+                try:
+                    chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+                except ChatRoomModel.DoesNotExist:
+                    chatroom = ''
+
+                if chatroom and not chatroom.member.filter(vcSerialNo=member_defaults['vcSerialNo']).exists():
+                    chatroom.member.add(memberinfo)
         self.handle_member_room(datas)
 
     def handle_member_room(self, members):
