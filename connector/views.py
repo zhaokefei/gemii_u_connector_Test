@@ -324,7 +324,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
                 roommerber_data = {
                     'RoomID': room_record.RoomID,
-                    'NickName': member['vcNickName'],
+                    'NickName': commont_tool.decode_base64(member['vcBase64NickName']),
                     'U_UserID': member['vcWxUserSerialNo'],
                     'member_icon': member['vcHeadImages'],
                     'DisplayName': member['vcNickName'],
@@ -583,7 +583,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin):
     def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
         roommember_data = {
             'RoomID': roominfo_raw.RoomID,
-            'NickName': member['vcNickName'],
+            'NickName': commont_tool.decode_base64(member['vcBase64NickName']),
             'U_UserID': member['vcSerialNo'],
             'member_icon': member['vcHeadImages'],
             'DisplayName': member['vcNickName'],
