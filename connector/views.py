@@ -1116,6 +1116,7 @@ class Qrcode(View):
             os.makedirs(dir_path)
         else:
             shutil.rmtree(dir_path)
+            os.makedirs(dir_path)
 
         for info in infos:
             params = info['params']
