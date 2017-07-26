@@ -428,6 +428,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 serNum = str(chatroom_record.serNum)
             except ChatRoomModel.DoesNotExist:
                 serNum = 'B'
+                chatroom_record = ""
 
             if serNum == 'A':
                 db_gemii_choice = 'gemii'
@@ -443,6 +444,8 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=u_roomid)
             except WeChatRoomInfoGemii.DoesNotExist:
                 room_record = ''
+            # 更新群信息成员关联关系
+            self.drop_member_update_chatroom_member(chatroom_record, u_userid)
 
             if not room_record:
                 member_log.info('未匹配u_userid(%s)入的群WeChatRoomInfo[%s]数据' % (
@@ -461,6 +464,12 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
     def delete_member_cache(self, roomid, u_userid):
         key = 'wechatroommemberinfo_data:{room_id}:{user_id}'.format(room_id=roomid, user_id=u_userid)
         return cache.delete(key)
+
+    def drop_member_update_chatroom_member(self, chatroom, u_userid):
+        """删除成员更新群信息member中间表"""
+        if chatroom:
+            if chatroom.member.filter(vcSerialNo=u_userid).exists():
+                chatroom.member.filter(vcSerialNo=u_userid).delete()
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
