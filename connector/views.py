@@ -657,6 +657,8 @@ class GetUrobotQucode(View):
             }
 
             response['data'] = data
+            django_log.info('获取二维码成功：%s' % request.POST)
+            django_log.info('u_response：%s' % u_response)
         else:
             django_log.info('获取二维码失败：%s' % request.POST)
             django_log.info('u_response：%s' % u_response)
