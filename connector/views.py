@@ -33,7 +33,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     DropOutChatRoomSerializer, MemberInfoSerializer, RobotBlockedSerialize
 
 from connector.forms import KickingForm
-
+from connector.tasks import handle_robotchatroom
 from django.db.models import F
 from django.conf import settings
 from connector.utils import commont_tool
@@ -1068,27 +1068,9 @@ class RebotRoomView(View):
     def batch_create(self,request):
         data = json.loads(request.POST['strContext'], strict=False)
         vcrobotserialno = data['vcRobotSerialNo']
-        nodatas = data.get('NoData', [])
         datas = data.get('Data', [])
-        create_list = []
-
-        for nodata in nodatas:
-            robot_chatroom = RobotChatRoom.objects.filter(vcRobotSerialNo=vcrobotserialno,
-                                                          vcChatRoomSerialNo=nodata['vcChatRoomSerialNo'])
-            if robot_chatroom.exists():
-                robot_chatroom.update(state='0')
-            else:
-                create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=nodata['vcChatRoomSerialNo'], state='0'))
-
-        for data in datas:
-            robot_chatroom = RobotChatRoom.objects.filter(vcRobotSerialNo=vcrobotserialno,
-                                                          vcChatRoomSerialNo=data['vcChatRoomSerialNo'])
-            if robot_chatroom.exists():
-                robot_chatroom.update(state='1')
-            else:
-                create_list.append(RobotChatRoom(vcRobotSerialNo=vcrobotserialno, vcChatRoomSerialNo=data['vcChatRoomSerialNo'], state='1'))
-        if create_list:
-            RobotChatRoom.objects.bulk_create(create_list)
+        nodatas = data.get('NoData', [])
+        handle_robotchatroom.delay(vcrobotserialno, datas, nodatas)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
@@ -1184,3 +1166,4 @@ class Qrcode(View):
                 }
 
         return HttpResponse(json.dumps(rsp), content_type="application/json")
+
