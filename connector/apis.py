@@ -10,7 +10,10 @@ import urllib
 import requests
 from request import URequest, URequestVer2
 from django.conf import settings
+import logging
 
+
+django_log = logging.getLogger('django')
 
 No = settings.NO
 Sec = settings.SEC
@@ -342,6 +345,8 @@ def get_robot_qrcode(task_id, label_id, open_id,
         "code": "code",
         "instance_id": '123456'
     }
+    django_log.info('params')
+    django_log.info(params)
     u_request = URequestVer2(method=requests.post)
     u_request.api = api
     u_request.data = json.dumps(params)
