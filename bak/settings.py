@@ -36,7 +36,7 @@ SEC = '201706271010013'
 UC_AGENT = 'o1o-PwC2bydkk1iasqeHIuQswS2I'
 
 KICKINGCONTENT = u'亲爱的麻麻，您私拉用户入群的行为不符合社群规范，抱歉您将会被请出群'
-EMOJI_TO_UNICODE = os.path.join(BASE_DIR, 'data/emoji4unicode.xml')
+EMOJI_TO_UNICODE = os.path.join(BASE_DIRF8AA0ABFB05BED089CFA7CF08D79C911, 'connector/data/emoji4unicode.xml')
 # Application definition
 
 INSTALLED_APPS = [

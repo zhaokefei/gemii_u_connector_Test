@@ -401,3 +401,17 @@ def room_over(vcChatRoomSerialNo=''):
     u_request.data = data
     response = u_request.request()
     return response
+
+def chatroomadminchange(vcChatRoomSerialNo='', vcWxUserSerialNo=''):
+    api = 'Merchant.asmx/ChatRoomAdminChange'
+    params = {
+        'MerchantNo': No,
+        'vcChatRoomSerialNo': vcChatRoomSerialNo,
+        'vcWxUserSerialNo': vcWxUserSerialNo
+    }
+    data = gen_data(params)
+    u_request = URequest()
+    u_request.api = api
+    u_request.data = data
+    response = u_request.request()
+    return response

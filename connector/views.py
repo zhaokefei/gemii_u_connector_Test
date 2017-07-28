@@ -611,9 +611,11 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
 
         gemii_data['MemberID'] = member['vcSerialNo']
         gemii_data['enter_group_time'] = commont_tool.time_strf(member['dtCreateDate'])
-
-        WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
-        WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
+        try:
+            WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
+            WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
+        except Exception, e:
+            member_log.info('出现重复的数据 %s' % str(e.message))
 
 
 class GetUrobotQucode(View):
