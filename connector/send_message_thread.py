@@ -115,7 +115,7 @@ class DataReceiveThread(threading.Thread):
             msgContent = msg_data['Content']
             RoomID = msg_data['RoomID']
             UserNickName = msg_data['UserNickName']
-            MonitorSend = msg_data['MonitorSend']
+            MonitorSend = msg_data.get('MonitorSend', "")
             CreateTime = time.strftime('%Y-%m-%d %H:%M:%S')
             MsgId = ''.join(random.sample(CODE_STR, random.randint(20, 24)))
         except Exception, e:

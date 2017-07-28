@@ -6,8 +6,9 @@ Created on 2017年5月8日
 '''
 import base64
 from rest_framework import serializers, validators
-from .models import ChatMessageModel, URobotModel, ChatRoomModel,\
-IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RobotBlockedModel
+from connector.models import ChatMessageModel, URobotModel, ChatRoomModel,\
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RobotBlockedModel
+from connector.utils import commont_tool
 
 def decode_base64(chars):
     if type(chars) is unicode:
@@ -59,7 +60,8 @@ class IntoChatRoomSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         nickname = decode_base64(validated_data['vcBase64NickName']).decode('utf-8')
         nickname = nickname.strip('\n')
-        validated_data['vcNickName'] = nickname
+        # 转换名称中softbank emoji 为unicode emoji
+        validated_data['vcNickName'] = commont_tool.emoji_to_unicode(nickname)
         return super(IntoChatRoomSerializer, self).create(validated_data)
     class Meta:
         model = IntoChatRoom
@@ -78,7 +80,8 @@ class MemberInfoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         nickname = decode_base64(validated_data['vcBase64NickName']).decode('utf-8')
         nickname = nickname.strip('\n')
-        validated_data['vcNickName'] = nickname
+        # 转换名称中softbank emoji 为unicode emoji
+        validated_data['vcNickName'] = commont_tool.emoji_to_unicode(nickname)
         vcSerialNo = validated_data.pop('vcSerialNo')
         instance, created = MemberInfo.objects.update_or_create(vcSerialNo=vcSerialNo, defaults=validated_data)
         return instance

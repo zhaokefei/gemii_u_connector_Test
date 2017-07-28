@@ -283,7 +283,8 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
         for member in members:
             u_roomid = member['vcChatRoomSerialNo']
             u_userid = member['vcWxUserSerialNo']
-            nickname = commont_tool.decode_base64(member['vcBase64NickName'])
+            origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
+            nickname = commont_tool.emoji_to_unicode(origin_name)
             if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
                 member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
                 response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
@@ -515,19 +516,6 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
                 if chatroom:
                     chatroom.member.add(serializer.instance)
 
-            # else:
-            #     instance = MemberInfo.objects.filter(vcSerialNo=member['vcSerialNo'])
-            #     if member['dtCreateDate']:
-            #         member['dtCreateDate'] = commont_tool.time_strf(member['dtCreateDate'])
-            #     if member['dtLastMsgDate']:
-            #         member['dtLastMsgDate'] = commont_tool.time_strf(member['dtLastMsgDate'])
-            #     else:
-            #         member.pop('dtLastMsgDate')
-            #     instance.update(**member)
-            #     if chatroom:
-            #         if not chatroom.member.filter(vcSerialNo=member['vcSerialNo']).exists():
-            #             chatroom.member.add(instance.first())
-
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
         self.handle_member_room(members, chatroom_id)
         return HttpResponse('SUCCESS')
@@ -595,7 +583,8 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
         WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
 
     def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
-        nickname = commont_tool.decode_base64(member['vcBase64NickName'])
+        origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
+        nickname = commont_tool.emoji_to_unicode(origin_name)
         roommember_data = {
             'RoomID': roominfo_raw.RoomID,
             'NickName': nickname,

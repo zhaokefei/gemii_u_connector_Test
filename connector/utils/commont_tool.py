@@ -63,3 +63,9 @@ def encode_base64(chars):
     if isinstance(chars, unicode):
         chars = chars.encode('utf8')
     return base64.urlsafe_b64encode(chars)
+
+def emoji_to_unicode(nickname):
+    import e4u
+    e4u.load(filename='../data/emoji4unicode.xml')
+    result = e4u.translate(nickname, **e4u.SOFTBANK_TRANSLATE_PROFILE)
+    return result
