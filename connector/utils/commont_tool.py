@@ -10,6 +10,9 @@ import logging
 from connector import apis
 import base64
 
+from django.conf import settings
+
+
 message_log = logging.getLogger('message')
 
 
@@ -66,6 +69,6 @@ def encode_base64(chars):
 
 def emoji_to_unicode(nickname):
     import e4u
-    e4u.load(filename='../data/emoji4unicode.xml')
+    e4u.load(filename=settings.EMOJI_TO_UNICODE)
     result = e4u.translate(nickname, **e4u.SOFTBANK_TRANSLATE_PROFILE)
     return result
