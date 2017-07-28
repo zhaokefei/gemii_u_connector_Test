@@ -4,11 +4,14 @@ Created on 2017年5月8日
 
 @author: hepeng
 '''
+import logging
 import base64
 from rest_framework import serializers, validators
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel,\
     IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RobotBlockedModel
 from connector.utils import commont_tool
+
+django_log = logging.getLogger('django')
 
 def decode_base64(chars):
     if type(chars) is unicode:
@@ -18,10 +21,14 @@ def decode_base64(chars):
 class ChatMessageSerializer(serializers.ModelSerializer):
     dtMsgTime = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S', required=False)
     def create(self, validated_data):
+        django_log.info(validated_data)
+        django_log.info('send message before')
         if int(validated_data['nMsgType']) == 2001:
             content = decode_base64(validated_data['vcContent']).decode('utf-8')
             content = content.strip('\n')
             validated_data['vcContent'] = content
+            django_log.info(validated_data)
+            django_log.info('send message after')
         return super(ChatMessageSerializer, self).create(validated_data)
     class Meta:
         model = ChatMessageModel
@@ -58,10 +65,14 @@ class IntoChatRoomMessageSerializer(serializers.ModelSerializer):
         
 class IntoChatRoomSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
+        django_log.info(validated_data)
+        django_log.info('enter chatroom before')
         nickname = decode_base64(validated_data['vcBase64NickName']).decode('utf-8')
         nickname = nickname.strip('\n')
         # 转换名称中softbank emoji 为unicode emoji
         validated_data['vcNickName'] = commont_tool.emoji_to_unicode(nickname)
+        django_log.info(validated_data)
+        django_log.info('enter chatroom after')
         return super(IntoChatRoomSerializer, self).create(validated_data)
     class Meta:
         model = IntoChatRoom
