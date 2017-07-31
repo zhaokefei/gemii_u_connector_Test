@@ -37,6 +37,7 @@ from connector.tasks import handle_robotchatroom
 from django.db.models import F
 from django.conf import settings
 from connector.utils import commont_tool
+from connector.utils import me_java_callback
 from django.db import transaction
 
 from legacy_system.publish import pub_message
@@ -437,6 +438,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
 
             u_roomid = data['vcChatRoomSerialNo']
             u_userid= data['vcWxUserSerialNo']
+            dtcreatedate = data['dtCreateDate']
             try:
                 chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
                 serNum = str(chatroom_record.serNum)
@@ -467,6 +469,10 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 continue
             else:
                 roomid = room_record.RoomID
+                #退群回调java
+                # openid = me_java_callback.get_openid_by_roomid_and_userid(roomid, u_userid)
+                # if openid:
+                #     me_java_callback.drop_room_callback(openid, u_roomid, dtcreatedate)
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
                 self.delete_member_cache(roomid, u_userid)
@@ -630,6 +636,9 @@ class GetUrobotQucode(View):
         except Exception:
             response = {'code': 1, 'msg': '表单参数错误'}
             return response
+
+        #入群回调java接口
+        # me_java_callback.into_room_callback(open_id, chat_room_id, datetime.datetime.now())
 
         params = {
             "task_id": task_id,
