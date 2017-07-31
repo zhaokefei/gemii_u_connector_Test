@@ -33,7 +33,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     DropOutChatRoomSerializer, MemberInfoSerializer, RobotBlockedSerialize
 
 from connector.forms import KickingForm
-from connector.tasks import handle_robotchatroom
+from connector.tasks import handle_robotchatroom, handle_member_room
 from django.db.models import F
 from django.conf import settings
 from connector.utils import commont_tool
@@ -525,7 +525,8 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
                     chatroom.member.add(serializer.instance)
 
         member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
-        self.handle_member_room(members, chatroom_id)
+        # self.handle_member_room(members, chatroom_id)
+        handle_member_room.delay(members, chatroom_id)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler
@@ -535,93 +536,93 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
         chatroom_id = data['vcChatRoomSerialNo']
         return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
-    @transaction.atomic()
-    def handle_member_room(self, members, chatroom_id):
-        """
-        参数	说明
-            vcChatRoomSerialNo	群编号
-            vcSerialNo	用户编号
-            vcNickName	用户昵称
-            vcBase64NickName	Base64编码后的用户昵称
-            vcHeadImages	用户头像
-            nJoinChatRoomType	入群方式 10扫码 11拉入 12未知
-            vcFatherWxUserSerialNo	邀请人用户编号
-            nMsgCount	当天发言总数
-            dtLastMsgDate	当天最后发言时间
-            dtCreateDate	入群时间
+    # @transaction.atomic()
+    # def handle_member_room(self, members, chatroom_id):
+    #     """
+    #     参数	说明
+    #         vcChatRoomSerialNo	群编号
+    #         vcSerialNo	用户编号
+    #         vcNickName	用户昵称
+    #         vcBase64NickName	Base64编码后的用户昵称
+    #         vcHeadImages	用户头像
+    #         nJoinChatRoomType	入群方式 10扫码 11拉入 12未知
+    #         vcFatherWxUserSerialNo	邀请人用户编号
+    #         nMsgCount	当天发言总数
+    #         dtLastMsgDate	当天最后发言时间
+    #         dtCreateDate	入群时间
+    #
+    #     :param members:
+    #     :return:
+    #     """
+    #     try:
+    #         chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+    #         serNum = str(chatroom_record.serNum)
+    #     except ChatRoomModel.DoesNotExist:
+    #         serNum = 'B'
+    #
+    #     if serNum == 'A':
+    #         db_gemii_choice = 'gemii'
+    #         db_wyeth_choice = 'wyeth'
+    #         member_log.info('选择A库')
+    #     # TODo elif serNum=='B'
+    #     else:
+    #         db_gemii_choice = 'gemii_b'
+    #         db_wyeth_choice = 'wyeth_b'
+    #         member_log.info('选择B库')
+    #     try:
+    #         roominfo_raw = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=chatroom_id)
+    #     except WeChatRoomInfoGemii.DoesNotExist:
+    #         member_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(chatroom_id)))
+    #         return None
+    #     member_log.info('开始更新U_RoomID：%s的成员信息' % (str(chatroom_id)))
+    #     WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roominfo_raw.RoomID).delete()
+    #     WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roominfo_raw.RoomID).delete()
+    #
+    #     count = 0
+    #     for member in members:
+    #         userinfo_raws = UserInfo.objects.using(db_wyeth_choice).filter(U_UserID=member['vcSerialNo'],MatchGroup=roominfo_raw.RoomID)
+    #         if userinfo_raws:
+    #             userinfo_raw = userinfo_raws.first()
+    #         else:
+    #             userinfo_raw = ''
+    #         self.insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice)
+    #         count += 1
+    #     member_log.info('更新U_RoomID：%s的(%s)个成员信息成功' % (str(chatroom_id), count))
+    #     WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
+    #     WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
 
-        :param members:
-        :return:
-        """
-        try:
-            chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
-            serNum = str(chatroom_record.serNum)
-        except ChatRoomModel.DoesNotExist:
-            serNum = 'B'
-
-        if serNum == 'A':
-            db_gemii_choice = 'gemii'
-            db_wyeth_choice = 'wyeth'
-            member_log.info('选择A库')
-        # TODo elif serNum=='B'
-        else:
-            db_gemii_choice = 'gemii_b'
-            db_wyeth_choice = 'wyeth_b'
-            member_log.info('选择B库')
-        try:
-            roominfo_raw = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=chatroom_id)
-        except WeChatRoomInfoGemii.DoesNotExist:
-            member_log.info('未匹配到WeChatRoomInfo[%s]数据' % (str(chatroom_id)))
-            return None
-        member_log.info('开始更新U_RoomID：%s的成员信息' % (str(chatroom_id)))
-        WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roominfo_raw.RoomID).delete()
-        WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roominfo_raw.RoomID).delete()
-
-        count = 0
-        for member in members:
-            userinfo_raws = UserInfo.objects.using(db_wyeth_choice).filter(U_UserID=member['vcSerialNo'],MatchGroup=roominfo_raw.RoomID)
-            if userinfo_raws:
-                userinfo_raw = userinfo_raws.first()
-            else:
-                userinfo_raw = ''
-            self.insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice)
-            count += 1
-        member_log.info('更新U_RoomID：%s的(%s)个成员信息成功' % (str(chatroom_id), count))
-        WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
-        WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
-
-    def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
-        origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
-        nickname = commont_tool.emoji_to_unicode(origin_name)
-        roommember_data = {
-            'RoomID': roominfo_raw.RoomID,
-            'NickName': nickname,
-            'U_UserID': member['vcSerialNo'],
-            'member_icon': member['vcHeadImages'],
-            'DisplayName': nickname,
-        }
-
-        if userinfo_raw:
-            roommember_data['open_id'] = userinfo_raw.Openid
-            roommember_data['UserID'] = str(userinfo_raw.id)
-
-        if db_gemii_choice == 'gemii_b' and not userinfo_raw:
-            roommember_data['is_legal'] = '0'
-
-        whilelist = WhileList.objects.filter(vcChatRoomSerialNo=roominfo_raw.U_RoomID,
-                                             vcWxUserSerialNo=member['vcSerialNo'], flag='1')
-        if whilelist.exists():
-            roommember_data['is_legal'] = '2'
-
-        gemii_data = copy.copy(roommember_data)
-
-        gemii_data['MemberID'] = member['vcSerialNo']
-        gemii_data['enter_group_time'] = commont_tool.time_strf(member['dtCreateDate'])
-        try:
-            WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
-            WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
-        except Exception, e:
-            member_log.info('出现重复的数据 %s' % str(e.message))
+    # def insert_room_member_data(self, member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
+    #     origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
+    #     nickname = commont_tool.emoji_to_unicode(origin_name)
+    #     roommember_data = {
+    #         'RoomID': roominfo_raw.RoomID,
+    #         'NickName': nickname,
+    #         'U_UserID': member['vcSerialNo'],
+    #         'member_icon': member['vcHeadImages'],
+    #         'DisplayName': nickname,
+    #     }
+    #
+    #     if userinfo_raw:
+    #         roommember_data['open_id'] = userinfo_raw.Openid
+    #         roommember_data['UserID'] = str(userinfo_raw.id)
+    #
+    #     if db_gemii_choice == 'gemii_b' and not userinfo_raw:
+    #         roommember_data['is_legal'] = '0'
+    #
+    #     whilelist = WhileList.objects.filter(vcChatRoomSerialNo=roominfo_raw.U_RoomID,
+    #                                          vcWxUserSerialNo=member['vcSerialNo'], flag='1')
+    #     if whilelist.exists():
+    #         roommember_data['is_legal'] = '2'
+    #
+    #     gemii_data = copy.copy(roommember_data)
+    #
+    #     gemii_data['MemberID'] = member['vcSerialNo']
+    #     gemii_data['enter_group_time'] = commont_tool.time_strf(member['dtCreateDate'])
+    #     try:
+    #         WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
+    #         WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
+    #     except Exception, e:
+    #         member_log.info('出现重复的数据 %s' % str(e.message))
 
 
 class GetUrobotQucode(View):
@@ -933,7 +934,6 @@ class CreateRoomCallbackView(View):
             'taskId': task_id,
             'data': room_info_list
         }
-
         # TODO 写入数据到群信息表中
         # 根据task_id获取库编号
         try:
@@ -955,7 +955,6 @@ class CreateRoomCallbackView(View):
                 django_log.info('插入数据至群信息')
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
-
         response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
 
         return HttpResponse('SUCCESS.')
