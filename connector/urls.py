@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'intochatroommessage/$', IntoChatRoomMessageCreateView.as_view(), name='intochatroommessage'),
     url(r'intochatroom/$',IntoChatRoomCreateView.as_view(), name='intochatroom'),
     url(r'dropoutchatroom/$', DropOutChatRoomCreateView.as_view(), name='dropoutchatroom'),
-    url(r'memberinfo/$', MemberInfoCreateView.as_view(), name='memberinfo'),
+    url(r'memberinfo/$', csrf_exempt(MemberInfoCreateView.as_view()), name='memberinfo'),
 ]
 
 urlpatterns += [
