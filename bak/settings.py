@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import djcelery
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,8 +37,16 @@ SEC = '201706271010013'
 UC_AGENT = 'o1o-PwC2bydkk1iasqeHIuQswS2I'
 
 KICKINGCONTENT = u'亲爱的麻麻，您私拉用户入群的行为不符合社群规范，抱歉您将会被请出群'
-EMOJI_TO_UNICODE = os.path.join(BASE_DIRF8AA0ABFB05BED089CFA7CF08D79C911, 'connector/data/emoji4unicode.xml')
+EMOJI_TO_UNICODE = os.path.join(BASE_DIR, 'connector/data/emoji4unicode.xml')
 # Application definition
+
+# djcelery 配置
+djcelery.setup_loader()
+BROKER_URL = 'redis://:gemii@123.cc@54.223.198.95:8081/1'
+# CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+# CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_IGNORE_RESULT = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -46,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'connector',
     'wechat',
     'wyeth',
@@ -177,6 +187,8 @@ REDIS_CONFIG = {
 }
 
 CALLBACK_JAVA = "http://mt.gemii.cc/GroupManage/file/updateInfo"
+INTO_ROOM_CALLBACK_JAVA_ME = "http://192.168.0.235:8080/helpermanagebackend/enter/returnEnterGroupInfoToFriso/return"
+DROP_ROOM_CALLBACK_JAVA_ME = "http://192.168.0.235:8080/helpermanagebackend/enter/returnQuitGroupInfoToFriso/return"
 
 DATABASE_ROUTERS = ['UConnector.router.AuthRouter']
 

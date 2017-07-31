@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import djcelery
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,6 +32,15 @@ DEBUG = True
 ALLOWED_HOSTS = ['52.80.5.112', 'jbb.gemii.cc']
 # APPEND_SLASH = False
 
+# djcelery 配置
+djcelery.setup_loader()
+BROKER_URL = 'redis://:gemii@123.cc@54.223.132.253:8081/1'
+# CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+# CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_IGNORE_RESULT = True
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'connector',
     'wechat',
     'wyeth',
@@ -176,6 +187,8 @@ REDIS_CONFIG = {
 }
 
 CALLBACK_JAVA = "http://jbb.gemii.cc/GroupManage/file/updateInfo"
+INTO_ROOM_CALLBACK_JAVA_ME = ""
+DROP_ROOM_CALLBACK_JAVA_ME = ""
 
 DATABASE_ROUTERS = ['UConnector.router.AuthRouter']
 

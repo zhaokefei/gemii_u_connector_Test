@@ -700,7 +700,7 @@ class UnotityCallback(View):
             return response
 
         # 入群回调java接口
-        me_java_callback.into_room_callback(open_id, room_id, datetime.datetime.now())
+        # me_java_callback.into_room_callback(open_id, room_id, datetime.datetime.now())
 
         try:
             chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=room_id)
