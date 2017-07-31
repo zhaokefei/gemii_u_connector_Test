@@ -637,9 +637,6 @@ class GetUrobotQucode(View):
             response = {'code': 1, 'msg': '表单参数错误'}
             return response
 
-        #入群回调java接口
-        # me_java_callback.into_room_callback(open_id, chat_room_id, datetime.datetime.now())
-
         params = {
             "task_id": task_id,
             "label_id": '',
@@ -701,6 +698,9 @@ class UnotityCallback(View):
         except Exception:
             response = {'code': 1, 'msg': '表单参数错误'}
             return response
+
+        # 入群回调java接口
+        me_java_callback.into_room_callback(open_id, room_id, datetime.datetime.now())
 
         try:
             chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=room_id)
