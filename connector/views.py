@@ -286,8 +286,6 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             u_userid = member['vcWxUserSerialNo']
             origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
             nickname = commont_tool.emoji_to_unicode(origin_name)
-            django_log.info(repr(nickname))
-            django_log.info('nickname')
             if str(u_userid) == "7A2868EE3CA4A0FDE990AC1A319FE369":
                 member_log.info('踢特定用户 7A2868EE3CA4A0FDE990AC1A319FE369')
                 response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)

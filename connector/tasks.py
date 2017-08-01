@@ -21,7 +21,6 @@ member_log = logging.getLogger('member')
 
 @task
 def handle_robotchatroom(vcrobotserialno, datas, nodatas):
-    signals.request_started.send(sender=None)
 
     from django.db import connection
     with connection.cursor() as cursor:
@@ -32,7 +31,6 @@ def handle_robotchatroom(vcrobotserialno, datas, nodatas):
         if ar_datas:
             cursor.callproc("sync_robotchatroom", (vcrobotserialno, ar_datas, "1"))
 
-    signals.request_finished.send(sender=None)
 
 @task
 @transaction.atomic()
