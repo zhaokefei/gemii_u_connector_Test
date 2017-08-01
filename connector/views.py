@@ -517,16 +517,15 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
         if chatroom:
             chatroom.member.clear()
 
-        for member in members:
-            serializer = self.get_serializer(data=member)
-            if serializer.is_valid():
-                self.perform_create(serializer)
-                if chatroom:
-                    chatroom.member.add(serializer.instance)
+        # for member in members:
+        #     serializer = self.get_serializer(data=member)
+        #     if serializer.is_valid():
+        #         self.perform_create(serializer)
+        #         if chatroom:
+        #             chatroom.member.add(serializer.instance)
 
-        member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
         # self.handle_member_room(members, chatroom_id)
-        handle_member_room.delay(members, chatroom_id)
+        handle_member_room.delay(members, chatroom_id, chatroom)
         return HttpResponse('SUCCESS')
 
     @view_exception_handler

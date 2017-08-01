@@ -10,6 +10,7 @@ from django.db import transaction
 from django.core import signals
 
 from connector.models import RobotChatRoom, ChatRoomModel, WhileList
+from connector.serializers import MemberInfoSerializer
 from connector.utils import commont_tool
 from wechat.models import WeChatRoomMemberInfoGemii, WeChatRoomInfoGemii
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, WeChatRoomInfo
@@ -25,15 +26,17 @@ def handle_robotchatroom(vcrobotserialno, datas, nodatas):
     from django.db import connection
     with connection.cursor() as cursor:
         ar_nodatas = ','.join([x['vcChatRoomSerialNo'] for x in nodatas])
-        cursor.callproc("sync_robotchatroom", (vcrobotserialno, ar_nodatas, "0"))
+        if ar_nodatas:
+            cursor.callproc("sync_robotchatroom", (vcrobotserialno, ar_nodatas, "0"))
         ar_datas = ','.join([x['vcChatRoomSerialNo'] for x in datas])
-        cursor.callproc("sync_robotchatroom", (vcrobotserialno, ar_datas, "1"))
+        if ar_datas:
+            cursor.callproc("sync_robotchatroom", (vcrobotserialno, ar_datas, "1"))
 
     signals.request_finished.send(sender=None)
 
 @task
 @transaction.atomic()
-def handle_member_room(members, chatroom_id):
+def handle_member_room(members, chatroom_id, chatroom):
     """
     参数	说明
         vcChatRoomSerialNo	群编号
@@ -50,6 +53,15 @@ def handle_member_room(members, chatroom_id):
     :param members:
     :return:
     """
+
+    for member in members:
+        serializer = MemberInfoSerializer(data=member)
+        if serializer.is_valid():
+            instance = serializer.create(validated_data=serializer.data)
+            if chatroom:
+                chatroom.member.add(instance)
+
+    member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
 
     try:
         chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
