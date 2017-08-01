@@ -15,6 +15,7 @@ import requests
 import apis
 from django.core import signals
 
+from connector.models import ChatMessageModel
 from wechat.models import WeChatRoomMessageGemii
 
 CODE_STR = string.ascii_letters + string.digits
@@ -63,8 +64,8 @@ class DataReceiveThread(threading.Thread):
                     signals.request_started.send(sender=self)
                     # 获取redis数据, 出错重启apache2
                     if data['type'] == 'message':
-                        robot_msg, send_msg = self.get_msg_data(data)
-                        if not (robot_msg and send_msg):
+                        robot_msg, send_msg, save_conn_msg = self.get_msg_data(data)
+                        if not (robot_msg and send_msg and save_conn_msg):
                             django_log.info('取数据时出错，进入下一条消息')
                             continue
                         django_log.info('马上要进入由创接口调用')
@@ -75,7 +76,7 @@ class DataReceiveThread(threading.Thread):
                             continue
                         django_log.info('由创发送消息返回码------> %s' % str(response))
                         # 存数据至mysql
-                        self.insert_msg_to_database(response, robot_msg)
+                        self.insert_msg_to_database(response, robot_msg, save_conn_msg)
                 # 请求后发送信号
                 signals.request_finished.send(sender=self)
             except Exception, e:
@@ -83,12 +84,13 @@ class DataReceiveThread(threading.Thread):
                 time.sleep(2)
                 django_log.info('重新连接')
 
-    def insert_msg_to_database(self, response, robot_msg):
+    def insert_msg_to_database(self, response, robot_msg, save_conn_msg):
         response_data = json.loads(response)
         if str(response_data['nResult']) == "1":
             if self.type == 'A':
                 django_log.info('开始进入A库存数据')
                 WeChatRoomMessageGemii.objects.create(**robot_msg)
+                ChatMessageModel.objects.create(**save_conn_msg)
                 django_log.info('库A数据插入完成')
                 robot_msg['isLegal'] = "1"
                 self.redis.publish(self.channel_pub, json.dumps(robot_msg))
@@ -96,6 +98,7 @@ class DataReceiveThread(threading.Thread):
             else:
                 django_log.info('开始进入B库存数据')
                 WeChatRoomMessageGemii.objects.using('gemii_b').create(**robot_msg)
+                ChatMessageModel.objects.create(**save_conn_msg)
                 django_log.info('库B数据插入完成')
                 robot_msg['isLegal'] = "1"
                 self.redis.publish(self.channel_pub, json.dumps(robot_msg))
@@ -120,7 +123,7 @@ class DataReceiveThread(threading.Thread):
             MsgId = ''.join(random.sample(CODE_STR, random.randint(20, 24)))
         except Exception, e:
             django_log.info('发送消息参数错误 %s ' % e)
-            return False, False
+            return False, False, False
 
         link = {}
         if nMsgType == 3:
@@ -154,7 +157,7 @@ class DataReceiveThread(threading.Thread):
             django_log.info('获取到机器人编号')
         else:
             django_log.info('机器人编号记录不存在')
-            return False, False
+            return False, False, False
         # 生成发送给由创的数据类型
         msgtype_map = {1: '2001', 2: '2002', 3: '2005'}
         # 发送给由创的消息
@@ -170,7 +173,19 @@ class DataReceiveThread(threading.Thread):
             'vcHref': link.get("vcHref", "")
         }
 
-        return robot_msg, send_msg
+        save_conn_msg = {
+            "vcSerialNo": MsgId,
+            "vcChatRoomSerialNo": vcChatRoomSerialNo,
+            "vcFromWxUserSerialNo": MonitorSend,
+            "dtMsgTime": CreateTime,
+            "nMsgType": msgtype_map.get(int(nMsgType)),
+            "vcContent": link.get('msgContent', msgContent),
+            "vcShareTitle": link.get("vcTitle", ""),
+            "vcShareDesc": link.get("vcDesc", ""),
+            "vcShareUrl": link.get("vcHref", ""),
+        }
+
+        return robot_msg, send_msg, save_conn_msg
 
     def send_message(self, release=3, **kwargs):
         try:
