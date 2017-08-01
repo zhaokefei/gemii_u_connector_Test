@@ -138,6 +138,7 @@ class RobotChatRoom(models.Model):
     state = models.CharField(max_length=10, default=0, verbose_name=u'是否在群内')
 
     class Meta:
+        unique_together = ('vcRobotSerialNo', 'vcChatRoomSerialNo')
         db_table = 'robotchatroom'
         verbose_name_plural = verbose_name = u'机器人群信息'
 
