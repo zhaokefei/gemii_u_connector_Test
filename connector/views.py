@@ -1086,6 +1086,7 @@ class RobotBlockedView(GenericAPIView, mixins.CreateModelMixin):
     def batch_create(self, request):
         data = json.loads(request.POST['strContext'], strict=False)
         robotinfo = data['Data'][0]['RobotInfo']
+        member_log.info('block robotinfo %s' % str(data))
         for robot in robotinfo:
             serializer = self.get_serializer(data=robot)
             if serializer.is_valid():
