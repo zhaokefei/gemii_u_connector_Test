@@ -176,7 +176,7 @@ class DataReceiveThread(threading.Thread):
         save_conn_msg = {
             "vcSerialNo": MsgId,
             "vcChatRoomSerialNo": vcChatRoomSerialNo,
-            "vcFromWxUserSerialNo": MonitorSend,
+            "vcFromWxUserSerialNo": vcRobotSerialNo,
             "dtMsgTime": CreateTime,
             "nMsgType": msgtype_map.get(int(nMsgType)),
             "vcContent": link.get('msgContent', msgContent),
