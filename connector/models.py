@@ -163,9 +163,9 @@ class WhileList(models.Model):
 
 class RobotBlockedModel(models.Model):
     vcSerialNo = models.CharField(max_length=50, verbose_name=u'机器人编号')
-    nChatRoomCount = models.CharField(max_length=5, verbose_name=u'开通的群数量')
-    vcNickName = models.CharField(max_length=50, verbose_name=u'机器人昵称')
-    vcBase64NickName = models.CharField(max_length=100, verbose_name=u'机器人base64编码后的昵称')
+    nChatRoomCount = models.CharField(max_length=5, null=True, blank=True, verbose_name=u'开通的群数量')
+    vcNickName = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'机器人昵称')
+    vcBase64NickName = models.CharField(max_length=100, null=True, blank=True,  verbose_name=u'机器人base64编码后的昵称')
     vcHeadImages = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'助手头像')
     vcCodeImages = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'助手二维码')
     nStatus = models.CharField(max_length=10, null=True, blank=True, verbose_name=u'助手状态')
