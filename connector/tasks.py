@@ -58,7 +58,10 @@ def handle_member_room(members, chatroom_id, chatroom):
             instance = serializer.create(validated_data=serializer.data)
             if chatroom:
                 chatroom.member.add(instance)
+        else:
+            member_log.info(serializer.errors)
 
+    member_log.info('需要更新的群成员数据为（%s）' % (str(len(members))))
     member_log.info('更新群成员数据（%s）' % (str(chatroom_id)))
 
     try:

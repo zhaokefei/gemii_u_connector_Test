@@ -26,12 +26,12 @@ class MemberInfo(models.Model):
     群成员信息表
     """
     vcSerialNo = models.CharField(max_length=50, unique=True, verbose_name=u'用户编号')
-    vcNickName = models.CharField(max_length=100, verbose_name=u'用户昵称')
-    vcBase64NickName = models.CharField(max_length=100, verbose_name=u'Base64编码后的用户昵称')
-    vcHeadImages = models.CharField(max_length=1000, verbose_name=u'用户头像')
+    vcNickName = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'用户昵称')
+    vcBase64NickName = models.CharField(max_length=100, null=True, blank=True,  verbose_name=u'Base64编码后的用户昵称')
+    vcHeadImages = models.CharField(max_length=1000, null=True, blank=True,  verbose_name=u'用户头像')
     nJoinChatRoomType = models.CharField(max_length=5, verbose_name=u'入群方式')
     vcFatherWxUserSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'用户父级编号(邀请人编号)')
-    nMsgCount = models.CharField(max_length=10, verbose_name=u'当天发言总数')
+    nMsgCount = models.CharField(max_length=10, null=True, blank=True,  verbose_name=u'当天发言总数')
     dtLastMsgDate = models.DateTimeField(null=True, blank=True, verbose_name=u'当天最后发言时间')
     dtCreateDate = models.DateTimeField(null=True, blank=True, verbose_name=u'入群时间')
     
