@@ -81,7 +81,14 @@ class Command(BaseCommand):
                     if count == 1:
                         record.update(vcName=vcName, vcBase64Name=vcBase64Name)
 
-                time.sleep(random.random())
+                try:
+                    res_data = apis.receive_member_info(vcChatRoomSerialNo)
+                    sql_log.info(res_data)
+                except Exception, e:
+                    sql_log.info(u'获取群成员失败 %s' % vcChatRoomSerialNo)
+                    sql_log.info(u'错误日志 %s' % e.message)
+
+                time.sleep(3)
 
         sql_log.info(u'群总数为： %s' % qun_total)
         sql_log.info(u'插入群数据总数： %s' % insert_num)
