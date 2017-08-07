@@ -512,8 +512,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
         except ChatRoomModel.DoesNotExist:
             chatroom = ''
 
-        if chatroom:
-            chatroom.member.clear()
+
 
         # for member in members:
         #     serializer = self.get_serializer(data=member)

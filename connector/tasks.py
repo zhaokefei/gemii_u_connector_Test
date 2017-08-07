@@ -51,6 +51,8 @@ def handle_member_room(members, chatroom_id, chatroom):
     :param members:
     :return:
     """
+    if chatroom:
+        chatroom.member.clear()
 
     for member in members:
         serializer = MemberInfoSerializer(data=member)
