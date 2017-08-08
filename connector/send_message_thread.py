@@ -15,7 +15,7 @@ import requests
 import apis
 from django.core import signals
 
-from connector.models import ChatMessageModel
+from connector.models import ChatMessageModel, URobotModel
 from wechat.models import WeChatRoomMessageGemii
 
 CODE_STR = string.ascii_letters + string.digits
@@ -117,7 +117,6 @@ class DataReceiveThread(threading.Thread):
             vcWeixinSerialNo = ','.join(msg_data['memberIds'])
             msgContent = msg_data['Content']
             RoomID = msg_data['RoomID']
-            UserNickName = msg_data['UserNickName']
             MonitorSend = msg_data.get('MonitorSend', "")
             CreateTime = time.strftime('%Y-%m-%d %H:%M:%S')
             MsgId = ''.join(random.sample(CODE_STR, random.randint(20, 24)))
@@ -132,6 +131,19 @@ class DataReceiveThread(threading.Thread):
             link['vcDesc'] = card_link[1]
             link['vcHref'] = card_link[2]
             link['msgContent'] = card_link[2]
+
+        from models import ChatRoomModel
+        record = ChatRoomModel.objects.filter(vcChatRoomSerialNo=vcChatRoomSerialNo)
+        django_log.info('开始通过群编号查找对应的机器人')
+        if record.exists():
+            vcRobotSerialNo = record.first().vcRobotSerialNo
+            robot_record = URobotModel.objects.get(vcSerialNo=vcRobotSerialNo)
+            UserNickName = robot_record.vcNickName
+            django_log.info('获取到机器人编号')
+        else:
+            django_log.info('机器人编号记录不存在')
+            return False, False, False
+
         # 发送给java的类型转换
         robot_type = {2: 47, 3: 50, 1: 1}
         # 发送给java的数据
@@ -149,15 +161,6 @@ class DataReceiveThread(threading.Thread):
 
         django_log.info('生成发送给java的数据-----------> %s' % robot_msg)
 
-        from models import ChatRoomModel
-        record = ChatRoomModel.objects.filter(vcChatRoomSerialNo=vcChatRoomSerialNo)
-        django_log.info('开始通过群编号查找对应的机器人')
-        if record.exists():
-            vcRobotSerialNo = record.first().vcRobotSerialNo
-            django_log.info('获取到机器人编号')
-        else:
-            django_log.info('机器人编号记录不存在')
-            return False, False, False
         # 生成发送给由创的数据类型
         msgtype_map = {1: '2001', 2: '2002', 3: '2005'}
         # 发送给由创的消息

@@ -951,6 +951,7 @@ class CreateRoomCallbackView(View):
                 django_log.info('插入数据至群信息')
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
+
         response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
 
         return HttpResponse('SUCCESS.')
@@ -1168,4 +1169,43 @@ class Qrcode(View):
                 }
 
         return HttpResponse(json.dumps(rsp), content_type="application/json")
+
+
+class WhiteMemberCallBackView(View):
+    def post(self, request):
+        u_roomid = request.POST.get('uRoomId', '')
+        u_userid = request.POST.get('uMemberId', '')
+        flag = request.POST.get('flag', '')
+        type = request.POST.get('type', '')
+
+
+        if not type:
+            msg = {'code': 1, 'msg': '没有给对应的type值', 'data': None}
+            return HttpResponse(json.dumps(msg), content_type='application/json')
+
+        if str(type) == "1":
+            mem_record = WhileList.objects.filter(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+            if mem_record.exists():
+                white_memberid = mem_record.first().id
+                msg = {'code': 0, 'msg': 'success', 'data': {'White_ID': str(white_memberid)}}
+            else:
+                msg = {'code': 0, 'msg': 'success', 'data': {'White_ID': ''}}
+
+            member_log.info('select data response %s' % str(msg))
+
+            return HttpResponse(json.dumps(msg), content_type='application/json')
+
+        elif str(type) == "2":
+            mem_record = WhileList.objects.filter(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
+            if mem_record.exists():
+                member_log.info('update whitelist')
+                mem_record.update(flag=flag)
+        elif str(type) == "3":
+            member_log.info('create whitelist')
+            new_record = WhileList(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid, flag=flag)
+            new_record.save()
+
+        msg = {'code': 0, 'msg': 'success', 'data': None}
+
+        return HttpResponse(json.dumps(msg), content_type='application/json')
 

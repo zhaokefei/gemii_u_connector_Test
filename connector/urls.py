@@ -11,7 +11,7 @@ from connector.views import ChatMessageListView, URobotView, \
     ChatRoomView, IntoChatRoomMessageCreateView, IntoChatRoomCreateView,\
     DropOutChatRoomCreateView, MemberInfoCreateView, GetUrobotQucode, UnotityCallback, CreateRoomTaskView, \
     ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView, OpenKickingView, ShowKickingView,RebotRoomView,\
-    Qrcode, RobotBlockedView
+    Qrcode, RobotBlockedView, WhiteMemberCallBackView
 from django.views.decorators.csrf import csrf_exempt
 
 router = DefaultRouter()
@@ -39,5 +39,6 @@ urlpatterns += [
     url(r'^rebotroom/$', csrf_exempt(RebotRoomView.as_view()), name='rebotroom'),
     url(r'^make/qrcode/$', csrf_exempt(Qrcode.as_view()), name='make_qrcode'),
     url(r'^robotblocked/$', csrf_exempt(RobotBlockedView.as_view()), name='robotblocked'),
+    url(r'^whitemember/$', csrf_exempt(WhiteMemberCallBackView.as_view()), name='whitemember'),
 
 ]
