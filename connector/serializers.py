@@ -93,7 +93,6 @@ class MemberInfoSerializer(serializers.ModelSerializer):
 
 
 class RobotBlockedSerialize(serializers.ModelSerializer):
-    dtCreateDate = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', input_formats=('%Y/%m/%d %H:%M:%S', ''), allow_null=True)
     def create(self, validated_data):
         nickname = decode_base64(validated_data['vcBase64NickName']).decode('utf-8')
         nickname = nickname.strip('\n')

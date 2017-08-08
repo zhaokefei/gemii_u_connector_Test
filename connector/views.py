@@ -1088,9 +1088,15 @@ class RobotBlockedView(GenericAPIView, mixins.CreateModelMixin):
         robotinfo = data['Data'][0]['RobotInfo']
         member_log.info('block robotinfo %s' % str(data))
         for robot in robotinfo:
+            if 'vcUselessSerialNo' in robot.keys():
+                robot.pop('vcUselessSerialNo')
+            if 'TableName' in robot.keys():
+                robot.pop('TableName')
+            member_log.info('block robot ---> %s' % str(robot))
             serializer = self.get_serializer(data=robot)
             if serializer.is_valid():
                 self.perform_create(serializer)
+            member_log.info('serializer errors ---> %s' % str(serializer.errors))
         return HttpResponse('SUCCESS')
 
     @view_exception_handler

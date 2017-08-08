@@ -33,7 +33,6 @@ def handle_robotchatroom(vcrobotserialno, datas, nodatas):
 
 
 @task
-@transaction.atomic()
 def handle_member_room(members, chatroom_id, chatroom):
     """
     参数	说明
@@ -103,7 +102,7 @@ def handle_member_room(members, chatroom_id, chatroom):
     WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
     WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=chatroom_id).update(currentCount=count)
 
-
+@transaction.atomic()
 def insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice, db_wyeth_choice):
     origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
     nickname = commont_tool.emoji_to_unicode(origin_name)
