@@ -187,8 +187,7 @@ REDIS_CONFIG = {
 }
 
 CALLBACK_JAVA = "http://mt.gemii.cc/GroupManage/file/updateInfo"
-INTO_ROOM_CALLBACK_JAVA_ME = "http://192.168.0.235:8080/helpermanagebackend/enter/returnEnterGroupInfoToFriso/return"
-DROP_ROOM_CALLBACK_JAVA_ME = "http://192.168.0.235:8080/helpermanagebackend/enter/returnQuitGroupInfoToFriso/return"
+INTO_DROP_ROOM_CALLBACK_JAVA_ME = "http://192.168.0.235:8080/helpermanagebackend/enter/returnEnterOrQuitGroupInfoToFriso/return"
 
 DATABASE_ROUTERS = ['UConnector.router.AuthRouter']
 

@@ -30,16 +30,25 @@ def into_room_callback(open_id, room_id, time):
         member_log.info(e)
 
 
-def drop_room_callback(open_id, room_id, time):
+def into_or_drop_room_callback(open_id, room_id, time, type):
+    """
+    回调java接口传递入群退群消息
+    :param open_id:
+    :param room_id:
+    :param time:
+    :param type: "1" --> 入群; "2" ---> 退群
+    :return:
+    """
     try:
         callback_java_me_data = {
             'openID': open_id,
             'uRoomID': room_id,
             'time': time,
+            'type': type
         }
         headers = {'content-type': 'application/json'}
         data = json.dumps(callback_java_me_data)
-        java_rsp = requests.post(settings.DROP_ROOM_CALLBACK_JAVA_ME, data=data, headers=headers)
+        java_rsp = requests.post(settings.INTO_DROP_ROOM_CALLBACK_JAVA_ME, data=data, headers=headers)
         member_log.info('java_rsp')
         member_log.info(java_rsp.text)
         return java_rsp.text

@@ -411,3 +411,27 @@ def chatroomadminchange(vcChatRoomSerialNo='', vcWxUserSerialNo=''):
     u_request.data = data
     response = u_request.request()
     return response
+
+def chatroominfomodify(vcChatRoomSerialNo='', vcName='', vcNotice='', nInviteSwitch='1'):
+    """
+    修改群信息
+    :param vcChatRoomSerialNo:
+    :param vcName:
+    :param vcNotice:
+    :param nInviteSwitch: 需给定默认值,不可传空
+    :return:
+    """
+    api = 'Merchant.asmx/ChatRoomInfoModify'
+    params = {
+        'MerchantNo': No,
+        'vcChatRoomSerialNo': vcChatRoomSerialNo,
+        'vcName': vcName,
+        'vcNotice': vcNotice,
+        'nInviteSwitch': str(nInviteSwitch)
+    }
+    data = gen_data(params)
+    u_request = URequest()
+    u_request.api = api
+    u_request.data = data
+    response = u_request.request()
+    return response

@@ -70,5 +70,9 @@ def encode_base64(chars):
 def emoji_to_unicode(nickname):
     import e4u
     e4u.load(filename=settings.EMOJI_TO_UNICODE)
-    result = e4u.translate(nickname, **e4u.SOFTBANK_TRANSLATE_PROFILE)
+    try:
+        result = e4u.translate(nickname, **e4u.SOFTBANK_TRANSLATE_PROFILE)
+    except Exception, e:
+        message_log.info('translation name error: %s' % str(e.message))
+        result = nickname
     return result
