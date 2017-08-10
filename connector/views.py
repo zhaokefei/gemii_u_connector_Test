@@ -322,7 +322,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 # 入群回调java
                 if user_record:
                     openid = user_record.Openid
-                    dtcreatedate = member['message_create_time']
+                    dtcreatedate = datetime.datetime.now()
                     me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="1")
 
                 roommerber_data = {
