@@ -366,10 +366,10 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     currentCount=F('currentCount') + 1)
 
                 # 入群回调java
-                # if user_record:
-                #     openid = user_record.Openid
-                #     dtcreatedate = member['message_create_time']
-                #     me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="1")
+                if user_record:
+                    openid = user_record.Openid
+                    dtcreatedate = member['message_create_time']
+                    me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="1")
 
                 # 机器人拉人不踢
                 vcFatherWxUserSerialNo = member["vcFatherWxUserSerialNo"]
@@ -469,9 +469,9 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             else:
                 roomid = room_record.RoomID
                 #退群回调java
-                # openid = me_java_callback.get_openid_by_roomid_and_userid(roomid, u_userid)
-                # if openid:
-                #     me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="2")
+                openid = me_java_callback.get_openid_by_roomid_and_userid(roomid, u_userid)
+                if openid:
+                    me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="2")
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
                 self.delete_member_cache(roomid, u_userid)
