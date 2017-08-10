@@ -50,8 +50,7 @@ def into_or_drop_room_callback(open_id, room_id, time, type):
         data = json.dumps(callback_java_me_data)
         java_rsp = requests.post(settings.INTO_DROP_ROOM_CALLBACK_JAVA_ME, data=data, headers=headers)
         member_log.info('java_rsp')
-        member_log.info(java_rsp.text)
-        return java_rsp.text
+        member_log.info(java_rsp)
     except Exception, e:
         member_log.info('jave request error')
         member_log.info(e)
