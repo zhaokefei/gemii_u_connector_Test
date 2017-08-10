@@ -319,6 +319,12 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 except UserInfo.DoesNotExist:
                     user_record = ""
 
+                # 入群回调java
+                if user_record:
+                    openid = user_record.Openid
+                    dtcreatedate = member['message_create_time']
+                    me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="1")
+
                 roommerber_data = {
                     'RoomID': room_record.RoomID,
                     'NickName': nickname,
@@ -365,11 +371,6 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(
                     currentCount=F('currentCount') + 1)
 
-                # 入群回调java
-                if user_record:
-                    openid = user_record.Openid
-                    dtcreatedate = member['message_create_time']
-                    me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="1")
 
                 # 机器人拉人不踢
                 vcFatherWxUserSerialNo = member["vcFatherWxUserSerialNo"]
