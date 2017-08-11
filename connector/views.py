@@ -585,6 +585,7 @@ class UnotityCallback(View):
         """
         response = {'code': 0, 'msg': '成功'}
         try:
+            member_log.info('enter chatroom callback')
             open_id = request.POST['open_id']
             room_id = request.POST['room_id']
             room_name = request.POST['room_name']
@@ -593,6 +594,7 @@ class UnotityCallback(View):
             verify_code = request.POST['verify_code']
             user_nickname = request.POST['user_nickname']
         except Exception:
+            member_log.info('扫码入群出错')
             response = {'code': 1, 'msg': '表单参数错误'}
             return response
 
