@@ -48,6 +48,7 @@ def into_or_drop_room_callback(open_id, room_id, time, type):
         }
         headers = {'content-type': 'application/json'}
         data = json.dumps(callback_java_me_data)
+        member_log.info('即将调用java群成员接口')
         java_rsp = requests.post(settings.INTO_DROP_ROOM_CALLBACK_JAVA_ME, data=data, headers=headers)
         member_log.info('java_rsp')
         member_log.info(java_rsp)

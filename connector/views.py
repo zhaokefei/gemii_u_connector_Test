@@ -314,9 +314,10 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 str(member['vcWxUserSerialNo']), str(member['vcChatRoomSerialNo'])))
                 continue
             else:
-                try:
-                    user_record = UserInfo.objects.get(U_UserID=u_userid, MatchGroup=room_record.RoomID)
-                except UserInfo.DoesNotExist:
+                user_record = UserInfo.objects.filter(U_UserID=u_userid, MatchGroup=room_record.RoomID).order_by('-id')
+                if user_record.exists():
+                    user_record = user_record.first()
+                else:
                     user_record = ""
 
                 roommerber_data = {
@@ -466,6 +467,7 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 #退群回调java
                 openid = me_java_callback.get_openid_by_roomid_and_userid(roomid, u_userid)
                 if openid:
+                    member_log.info('退群回调java')
                     me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="2")
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=roomid, U_UserID=u_userid).delete()
@@ -595,6 +597,7 @@ class UnotityCallback(View):
             return response
 
         # 入群回调java接口
+        member_log.info('入群回调Java')
         me_java_callback.into_or_drop_room_callback(open_id, room_id, datetime.datetime.now(), type="1")
 
         try:
