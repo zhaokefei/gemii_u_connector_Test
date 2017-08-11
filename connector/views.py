@@ -320,10 +320,10 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 else:
                     user_record = ""
 
-                if user_record:
-                    # 入群回调java接口
-                    member_log.info('入群回调Java')
-                    me_java_callback.into_or_drop_room_callback(user_record.Openid, room_record.RoomID, datetime.datetime.now(), type="1")
+                # if user_record:
+                #     # 入群回调java接口
+                #     member_log.info('入群回调Java')
+                #     me_java_callback.into_or_drop_room_callback(user_record.Openid, room_record.RoomID, datetime.datetime.now(), type="1")
 
                 roommerber_data = {
                     'RoomID': room_record.RoomID,
@@ -603,6 +603,9 @@ class UnotityCallback(View):
             response = {'code': 1, 'msg': '表单参数错误'}
             return response
 
+
+        member_log.info('入群回调Java')
+        me_java_callback.into_or_drop_room_callback(open_id, room_id, str(datetime.datetime.now()), type="1")
 
         try:
             chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=room_id)
