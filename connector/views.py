@@ -319,12 +319,6 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 except UserInfo.DoesNotExist:
                     user_record = ""
 
-                # 入群回调java
-                if user_record:
-                    openid = user_record.Openid
-                    dtcreatedate = datetime.datetime.now()
-                    me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="1")
-
                 roommerber_data = {
                     'RoomID': room_record.RoomID,
                     'NickName': nickname,
@@ -601,7 +595,7 @@ class UnotityCallback(View):
             return response
 
         # 入群回调java接口
-        # me_java_callback.into_room_callback(open_id, room_id, datetime.datetime.now())
+        me_java_callback.into_or_drop_room_callback(open_id, room_id, datetime.datetime.now(), type="1")
 
         try:
             chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=room_id)
