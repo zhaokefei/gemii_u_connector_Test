@@ -79,7 +79,7 @@ class Command(BaseCommand):
                 else:
                     count = record.count()
                     if count == 1:
-                        record.update(vcName=vcName, vcBase64Name=vcBase64Name)
+                        record.update(vcName=vcName, vcBase64Name=vcBase64Name, vcRobotSerialNo=robot_num)
 
                 try:
                     res_data = apis.receive_member_info(vcChatRoomSerialNo)

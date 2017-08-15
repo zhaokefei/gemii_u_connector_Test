@@ -697,7 +697,6 @@ class UnotityCallback(View):
 
     @view_exception_handler
     def post(self, request):
-        member_log.info('扫码入群')
         response = self.unotity_callback(request)
         return HttpResponse(json.dumps(response), content_type="application/json")
 
