@@ -57,11 +57,13 @@ def into_or_drop_room_callback(open_id, room_id, time, type):
         member_log.info(e)
 
 
-def get_openid_by_roomid_and_userid(roomid, userid):
-    userinfos = UserInfo.objects.filter(MatchGroup=roomid, U_UserID=userid)
+def get_openid_by_roomid_and_userid(roomid, userid, db_wyeth_choice):
+    userinfos = UserInfo.objects.using(db_wyeth_choice).filter(MatchGroup=roomid, U_UserID=userid)
     if userinfos.exists():
+        member_log.info('enter userinfo')
         return userinfos[0].Openid
     else:
+        member_log.info('not into userinfo')
         return ''
 
 

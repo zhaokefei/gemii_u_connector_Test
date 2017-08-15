@@ -470,7 +470,9 @@ class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             else:
                 roomid = room_record.RoomID
                 #退群回调java
-                openid = me_java_callback.get_openid_by_roomid_and_userid(roomid, u_userid)
+                member_log.info('roomid %s' % str(roomid))
+                member_log.info('u_userid %s' % str(u_userid))
+                openid = me_java_callback.get_openid_by_roomid_and_userid(roomid, u_userid, db_wyeth_choice)
                 if openid:
                     member_log.info('退群回调java')
                     me_java_callback.into_or_drop_room_callback(openid, u_roomid, dtcreatedate, type="2")
