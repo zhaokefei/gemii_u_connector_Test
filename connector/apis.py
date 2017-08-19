@@ -210,7 +210,7 @@ def chatroom_kicking(vcRelationSerialNo="",
     return response
 
 
-def create_chatroom_task(theme, introduce, limit_member_count):
+def create_chatroom_task(theme, introduce, limit_member_count, bot_code):
     """
     @brief 创建开群任务
     :param theme: 群名[5-20]字符
@@ -224,6 +224,7 @@ def create_chatroom_task(theme, introduce, limit_member_count):
         "introduce": introduce,
         "price": 0.0,
         "limit_member_count": limit_member_count,
+        "bot_code": bot_code,
         "type": 12
     }
     u_request = URequestVer2()
@@ -428,6 +429,20 @@ def chatroominfomodify(vcChatRoomSerialNo='', vcName='', vcNotice='', nInviteSwi
         'vcName': vcName,
         'vcNotice': vcNotice,
         'nInviteSwitch': str(nInviteSwitch)
+    }
+    data = gen_data(params)
+    u_request = URequest()
+    u_request.api = api
+    u_request.data = data
+    response = u_request.request()
+    return response
+
+
+def checkchatroomstatus(vcChatRoomSerialNo=''):
+    api = 'Merchant.asmx/ChatRoomStatus'
+    params = {
+        'MerchantNo': No,
+        'vcChatRoomSerialNo': vcChatRoomSerialNo,
     }
     data = gen_data(params)
     u_request = URequest()

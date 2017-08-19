@@ -23,8 +23,8 @@ from rest_framework.generics import GenericAPIView
 from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
-    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask,RobotChatRoom, GemiiRobot,\
-    WhileList, RobotBlockedModel
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask, RobotChatRoom, GemiiRobot, \
+    WhileList, RobotBlockedModel, SendMsgFailModel
 from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii, \
     Monitor, MonitorRoom
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
@@ -751,13 +751,15 @@ class CreateRoomTaskView(View):
         introduce = request.POST.get('introduce', False)
         limit_member_count = request.POST.get('limit_member_count', False)
         count = request.POST.get('count', False)
+        bot_code = request.POST.get('bot_code', False)
         # 参数传递不全时返回
-        if not (theme and introduce and limit_member_count and count and serNum):
+        if not (theme and introduce and limit_member_count and count and serNum and bot_code):
             msg = {'code': 1, 'msg': "请传递完整的参数"}
             return msg
 
         # 创建建群任务
-        create_task_response = apis.create_chatroom_task(theme, introduce, limit_member_count)
+        create_task_response = apis.create_chatroom_task(theme, introduce, limit_member_count, bot_code)
+        django_log.info('由创返回建群任务 %s' % str(create_task_response))
         # 解析建群请求
         create_task_data = json.loads(create_task_response)
         if create_task_data['code'] != 0:
@@ -769,12 +771,14 @@ class CreateRoomTaskView(View):
         theme_image = task_data['theme_image']
         creator = task_data['creator']
         create_time = task_data['create_time']
+        u_bot_code = task_data['bot_code']
         # 激活建群任务
         apis.active_chatroom_task(task_id, theme, theme_image,
                                   count, creator, create_time)
 
         # 创建群
         createroom_response = apis.create_chatroom(task_id)
+        django_log.info('由创返回的建群: %s' % str(createroom_response))
         createroom_data = json.loads(createroom_response)
         if createroom_data['code'] != 0:
             return createroom_data
@@ -795,10 +799,10 @@ class CreateRoomTaskView(View):
         django_log.info('创群返回参数 %s' % str(response))
 
         # TODO 获取java传过来的库编号，写入RoomTask中
-        roomtask = RoomTask(serNum=serNum, task_id=task_id)
+        roomtask = RoomTask(serNum=serNum, task_id=task_id, bot_code=u_bot_code)
         roomtask.save()
 
-        django_log.info('存入库编号: %s , task_id: %s ' % (str(serNum), str(task_id)))
+        django_log.info('存入库编号: %s , task_id: %s, bot_code: %s ' % (str(serNum), str(task_id), str(u_bot_code)))
 
         return response
     @view_exception_handler
@@ -1125,3 +1129,16 @@ class WhiteMemberCallBackView(View):
 
         return HttpResponse(json.dumps(msg), content_type='application/json')
 
+class SendMessageFailView(View):
+    """
+    发送消息失败回调接口
+    """
+    @view_exception_handler
+    def post(self, request):
+        msg_data = json.loads(request.data['strContext'], strict=False)
+        vcRelaSerialNo = msg_data['vcRelaSerialNo']
+        nMsgNum = msg_data['nMsgNum']
+
+        new_record = SendMsgFailModel(vcRelaSerialNo=vcRelaSerialNo, nMsgNum=nMsgNum)
+        new_record.save()
+        return HttpResponse('SUCCESS')

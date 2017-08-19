@@ -126,6 +126,7 @@ class ChatMessageModel(models.Model):
 class RoomTask(models.Model):
     task_id = models.CharField(max_length=50, verbose_name=u'建群任务编号')
     serNum = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'库编号')
+    bot_code = models.CharField(max_length=10, null=True, blank=True, verbose_name=u'项目区分编号')
 
     class Meta:
         db_table = 'roomtask'
@@ -174,3 +175,12 @@ class RobotBlockedModel(models.Model):
     class Meta:
         db_table = 'robotblocked'
         verbose_name_plural = verbose_name = u'机器人被封信息'
+
+
+class SendMsgFailModel(models.Model):
+    vcRelaSerialNo = models.CharField(max_length=50, verbose_name=u'商家编号')
+    nMsgNum = models.CharField(max_length=50, verbose_name=u'消息编号')
+
+    class Meta:
+        db_table = 'failmessage'
+        verbose_name_plural = verbose_name = u'发送失败的消息'
