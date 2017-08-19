@@ -2,9 +2,10 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from connector.models import ChatMessageModel,URobotModel,ChatRoomModel,\
-    IntoChatRoomMessageModel,IntoChatRoom, DropOutChatRoom, MemberInfo,RobotChatRoom,GemiiRobot,\
-    WhileList, RobotBlockedModel
+from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
+    IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RobotChatRoom, GemiiRobot, \
+    WhileList, RobotBlockedModel, SendMsgFailModel
+
 
 # Register your models here.
 class ChatMessageModelAdmin(admin.ModelAdmin):
@@ -56,6 +57,10 @@ class RobotBlockedAdmin(admin.ModelAdmin):
     list_display = ('vcSerialNo', 'vcNickName', 'vcCodeImages')
     search_fields = ('vcSerialNo', 'vcNickName')
 
+class SendMessageFailAdmin(admin.ModelAdmin):
+    list_display = ('vcRelaSerialNo', 'nMsgNum', 'message_receive_time')
+    search_fields = ('nMsgNum',)
+
 admin.site.register(ChatMessageModel, ChatMessageModelAdmin)
 admin.site.register(URobotModel, URobotModelAdmin)
 admin.site.register(ChatRoomModel, ChatRoomModelAdmin)
@@ -67,3 +72,4 @@ admin.site.register(RobotChatRoom, RobotChatRoomAdmin)
 admin.site.register(GemiiRobot, GemiiRobotAdmin)
 admin.site.register(WhileList, WhileListAdmin)
 admin.site.register(RobotBlockedModel, RobotBlockedAdmin)
+admin.site.register(SendMsgFailModel, SendMessageFailAdmin)

@@ -180,6 +180,7 @@ class RobotBlockedModel(models.Model):
 class SendMsgFailModel(models.Model):
     vcRelaSerialNo = models.CharField(max_length=50, verbose_name=u'商家编号')
     nMsgNum = models.CharField(max_length=50, verbose_name=u'消息编号')
+    message_receive_time = models.DateTimeField(default=timezone.now, verbose_name=u'消息接收时间')
 
     class Meta:
         db_table = 'failmessage'
