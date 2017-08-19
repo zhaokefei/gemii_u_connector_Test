@@ -1135,9 +1135,9 @@ class SendMessageFailView(View):
     """
     @view_exception_handler
     def post(self, request):
-        msg_data = json.loads(request.data['strContext'], strict=False)
+        msg_data = json.loads(request.POST['strContext'], strict=False)
         vcRelaSerialNo = msg_data['vcRelaSerialNo']
-        nMsgNum = msg_data['nMsgNum']
+        nMsgNum = str(msg_data['nMsgNum'])
 
         new_record = SendMsgFailModel(vcRelaSerialNo=vcRelaSerialNo, nMsgNum=nMsgNum)
         new_record.save()
