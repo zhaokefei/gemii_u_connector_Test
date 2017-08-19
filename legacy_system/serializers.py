@@ -38,7 +38,7 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     UserDisplayName = serializers.SerializerMethodField('get_nickname')
     MsgId = serializers.CharField(source='vcSerialNo')
     # CreateTime = serializers.SerializerMethodField('get_creat_time')
-    CreateTime = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S', source="dtMsgTime", required=False)
+    CreateTime = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', source="dtMsgTime", required=False)
     RoomID = serializers.SerializerMethodField('get_room_id')
     # MemberID = serializers.SerializerMethodField('get_member_id')
     MemberID = serializers.CharField(source='vcFromWxUserSerialNo')
