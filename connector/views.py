@@ -94,28 +94,33 @@ class KickingRedis(object):
 
 class KickingSendMsg(object):
 
-    def kicking_send_msg(self, chatroom_record, sernum, u_roomid, u_userid, roomid, monitorname=None):
+    def kicking_send_msg(self, chatroom_record, sernum, u_roomid, u_userid, roomid):
         vcRobotSerialNo = chatroom_record.vcRobotSerialNo
         content = settings.KICKINGCONTENT
         apis.send_chat_message(vcRobotSerialNo=vcRobotSerialNo, vcChatRoomSerialNo=u_roomid,
                                vcWeixinSerialNo=u_userid, msgContent=content)
-        if monitorname is None:
-            if sernum == "A":
-                try:
-                    monitorroom = MonitorRoom.objects.using('gemii').get(RoomID=roomid)
-                    monitorid = monitorroom.MonitorID
-                    monitor = Monitor.objects.using('gemii').get(id=monitorid)
-                    monitorname = monitor.UserName
-                except MonitorRoom.DoesNotExist:
-                    monitorname = ""
-            else:
-                try:
-                    monitorroom = MonitorRoom.objects.using('gemii_b').get(RoomID=roomid)
-                    monitorid = monitorroom.MonitorID
-                    monitor = Monitor.objects.using('gemii_b').get(id=monitorid)
-                    monitorname = monitor.UserName
-                except MonitorRoom.DoesNotExist:
-                    monitorname = ""
+        # if monitorname is None:
+        #     if sernum == "A":
+        #         try:
+        #             monitorroom = MonitorRoom.objects.using('gemii').get(RoomID=roomid)
+        #             monitorid = monitorroom.MonitorID
+        #             monitor = Monitor.objects.using('gemii').get(id=monitorid)
+        #             monitorname = monitor.UserName
+        #         except MonitorRoom.DoesNotExist:
+        #             monitorname = ""
+        #     else:
+        #         try:
+        #             monitorroom = MonitorRoom.objects.using('gemii_b').get(RoomID=roomid)
+        #             monitorid = monitorroom.MonitorID
+        #             monitor = Monitor.objects.using('gemii_b').get(id=monitorid)
+        #             monitorname = monitor.UserName
+        #         except MonitorRoom.DoesNotExist:
+        #             monitorname = ""
+        try:
+            robot_info = URobotModel.objects.get(vcRobotSerialNo=vcRobotSerialNo)
+            monitorname = robot_info.vcNickName
+        except URobotModel.DoesNotExist:
+            monitorname = ''
 
         robot_msg = {
             "Content": content,
@@ -187,6 +192,17 @@ class ChatRoomView(viewsets.ModelViewSet):
                 room_record.vcApplyCodeSerialNo = data['vcApplyCodeSerialNo']
                 room_record.save()
             except:
+                ## 关联A库相关的群编号
+                # a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
+                # a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
+                # if a_gemii_room_record.exists():
+                #     a_gemii_room_record.update({'U_RoomID': u_roomid})
+                #     data['serNum'] = 'A'
+                # if a_wyeth_room_record.exists():
+                #     a_wyeth_room_record.update({'U_RoomID': u_roomid})
+                #     if not data.get('serNum'):
+                #         data['serNum'] = 'A'
+
                 serializer = self.get_serializer(data=data)
                 if serializer.is_valid():
                     self.perform_create(serializer)
@@ -723,10 +739,12 @@ class ChatRoomKickingView(View):
             member_log.info('未获取到群信息')
 
         if chatroom_record:
+            # member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
             member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
-            if RoomID and monitorName:
+            if RoomID:
                 kick = KickingSendMsg()
-                kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID, monitorname=monitorName)
+                # TODO: 去掉monitorName字段
+                kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID)
                 time.sleep(2)
 
         response = apis.chatroom_kicking(vcRelationSerialNo="",
@@ -745,6 +763,7 @@ class ChatRoomKickingView(View):
 class CreateRoomTaskView(View):
     """接受建群任务进行建群处理"""
     def create_room_task(self, request, *args, **kwargs):
+        django_log.info('建群参数 %s' % str(request.POST))
         # 解析请求参数
         serNum = request.POST.get('serNum', False)
         theme = request.POST.get('theme', False)
@@ -865,6 +884,15 @@ class CreateRoomCallbackView(View):
                 django_log.info('插入数据至群信息')
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
+
+        # finally:
+        #     # 根据不同的库编号回调java不同的接口
+        #     if serNum == 'A':
+        #         response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
+        #         django_log.info('回调A库建群接口')
+        #     else:
+        #         response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
+        #         django_log.info('回调B库建群接口')
 
         response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
 

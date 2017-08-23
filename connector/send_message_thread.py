@@ -109,7 +109,7 @@ class DataReceiveThread(threading.Thread):
         request_data = json.loads(data['data'])
         # # 解析数据
         msg_data = request_data['Msg']
-        django_log.info('获取到java数据------------> %s' % msg_data)
+        django_log.info('获取到java数据------------> %s' % request_data)
         try:
             vcChatRoomSerialNo = msg_data['u_roomId']
             nIsHit = msg_data['atAll']
@@ -147,6 +147,7 @@ class DataReceiveThread(threading.Thread):
         # 发送给java的类型转换
         robot_type = {2: 47, 3: 50, 1: 1}
         # 发送给java的数据
+        # TODO: 需要添加班长标识符字段
         robot_msg = {
             "Content": msgContent,
             "MsgType": robot_type.get(nMsgType),
