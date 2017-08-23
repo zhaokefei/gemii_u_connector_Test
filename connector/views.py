@@ -117,7 +117,7 @@ class KickingSendMsg(object):
         #         except MonitorRoom.DoesNotExist:
         #             monitorname = ""
         try:
-            robot_info = URobotModel.objects.get(vcRobotSerialNo=vcRobotSerialNo)
+            robot_info = URobotModel.objects.get(vcSerialNo=vcRobotSerialNo)
             monitorname = robot_info.vcNickName
         except URobotModel.DoesNotExist:
             monitorname = ''
