@@ -12,21 +12,24 @@ import copy
 
 import redis
 
+from django.db.models import F
+from django.conf import settings
 from django.views.generic import View
+from django.core.cache import cache
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse
 from rest_framework import mixins
 from rest_framework import viewsets
-from django.core.cache import cache
 from rest_framework.generics import GenericAPIView
+
 from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
     IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RoomTask, RobotChatRoom, GemiiRobot, \
     WhileList, RobotBlockedModel, SendMsgFailModel
 from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChatRoomMessageGemii, \
-    Monitor, MonitorRoom
+    DeleteMemberHistory
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
 from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
@@ -34,11 +37,8 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
 
 from connector.forms import KickingForm
 from connector.tasks import handle_robotchatroom, handle_member_room
-from django.db.models import F
-from django.conf import settings
 from connector.utils import commont_tool
 from connector.utils import me_java_callback
-from django.db import transaction
 
 from legacy_system.publish import pub_message
 # Create your views here.
@@ -193,15 +193,15 @@ class ChatRoomView(viewsets.ModelViewSet):
                 room_record.save()
             except:
                 ## 关联A库相关的群编号
-                # a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
-                # a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
-                # if a_gemii_room_record.exists():
-                #     a_gemii_room_record.update({'U_RoomID': u_roomid})
-                #     data['serNum'] = 'A'
-                # if a_wyeth_room_record.exists():
-                #     a_wyeth_room_record.update({'U_RoomID': u_roomid})
-                #     if not data.get('serNum'):
-                #         data['serNum'] = 'A'
+                a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
+                a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
+                if a_gemii_room_record.exists():
+                    a_gemii_room_record.update({'U_RoomID': u_roomid})
+                    data['serNum'] = 'A'
+                if a_wyeth_room_record.exists():
+                    a_wyeth_room_record.update({'U_RoomID': u_roomid})
+                    if not data.get('serNum'):
+                        data['serNum'] = 'A'
 
                 serializer = self.get_serializer(data=data)
                 if serializer.is_valid():
@@ -336,11 +336,6 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 else:
                     user_record = ""
 
-                # if user_record:
-                #     # 入群回调java接口
-                #     member_log.info('入群回调Java')
-                #     me_java_callback.into_or_drop_room_callback(user_record.Openid, room_record.RoomID, datetime.datetime.now(), type="1")
-
                 roommerber_data = {
                     'RoomID': room_record.RoomID,
                     'NickName': nickname,
@@ -411,8 +406,8 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                         # (wyeth_task and str(room_record.owner) == '') and db_gemii_wyeth == 'gemii_b':
                         # member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s, 惠氏: %s' % (str(ayd_task), str(msj_task), str(wyeth_task)))
                         member_log.info('私拉踢人的项目--> 爱婴岛: %s, 美素佳儿: %s' % (str(ayd_task), str(msj_task)))
+                        roomid = room_record.RoomID
                         if chatroom_record:
-                            roomid = room_record.RoomID
                             kick = KickingSendMsg()
                             kick.kicking_send_msg(chatroom_record, serNum, u_roomid, u_userid, roomid)
                             time.sleep(2)
@@ -421,6 +416,15 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                         data = json.loads(response)
                         if str(data['nResult']) == "1":
                             member_log.info('私拉踢人已打开，%s 用户已被移出群 %s' % (str(u_userid), str(u_roomid)))
+                            delete_member = {
+                                'RoomID': roomid,
+                                'MemberId': u_userid,
+                                'UserDisplayName': nickname,
+                                'UserNickName': nickname,
+                                'U_userId': u_userid,
+                                'Type': '4'
+                            }
+                            DeleteMemberHistory.objects.using(db_gemii_choice).create(**delete_member)
                         else:
                             member_log.info('私拉踢人已打开，由创返回码 %s' % str(response))
 

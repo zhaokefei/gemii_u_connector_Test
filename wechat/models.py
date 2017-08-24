@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import uuid
+
 from django.db import models
 
 # Create your models here.
@@ -63,5 +65,18 @@ class Monitor(models.Model):
 
     class Meta:
         db_table = "Monitor"
+
+class DeleteMemberHistory(models.Model):
+    HistoryId = models.CharField(max_length=50, default=uuid.uuid1, primary_key=True)
+    RoomId = models.CharField(max_length=100, blank=True, null=True)
+    MemberId = models.CharField(max_length=100, blank=True, null=True)
+    UserDisplayName = models.CharField(max_length=500, blank=True, null=True)
+    UserNickName = models.CharField(max_length=500, blank=True, null=True)
+    CreateTime = models.DateTimeField(auto_now_add=True)
+    U_userId = models.CharField(max_length=50, blank=True, null=True)
+    Type = models.CharField(max_length=10, blank=True, null=True)
+
+    class Meta:
+        db_table = "DeleteMemberHistory"
 
 
