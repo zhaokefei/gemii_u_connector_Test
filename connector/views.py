@@ -196,10 +196,10 @@ class ChatRoomView(viewsets.ModelViewSet):
                 a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
                 a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
                 if a_gemii_room_record.exists():
-                    a_gemii_room_record.update({'U_RoomID': u_roomid})
+                    a_gemii_room_record.update(U_RoomID=u_roomid)
                     data['serNum'] = 'A'
                 if a_wyeth_room_record.exists():
-                    a_wyeth_room_record.update({'U_RoomID': u_roomid})
+                    a_wyeth_room_record.update(U_RoomID=u_roomid)
                     if not data.get('serNum'):
                         data['serNum'] = 'A'
 
@@ -416,6 +416,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                         data = json.loads(response)
                         if str(data['nResult']) == "1":
                             member_log.info('私拉踢人已打开，%s 用户已被移出群 %s' % (str(u_userid), str(u_roomid)))
+                            ## 私拉踢人成功时写入记录到DeleteMemberHistory
                             delete_member = {
                                 'RoomId': roomid,
                                 'MemberId': u_userid,
