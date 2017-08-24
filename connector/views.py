@@ -417,7 +417,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                         if str(data['nResult']) == "1":
                             member_log.info('私拉踢人已打开，%s 用户已被移出群 %s' % (str(u_userid), str(u_roomid)))
                             delete_member = {
-                                'RoomID': roomid,
+                                'RoomId': roomid,
                                 'MemberId': u_userid,
                                 'UserDisplayName': nickname,
                                 'UserNickName': nickname,
