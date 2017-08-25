@@ -30,6 +30,7 @@ class WeChatRoomMessageGemii(models.Model):
     MemberID = models.CharField(max_length=100, null=True, blank=True)
     UserNickName = models.CharField(max_length=500, null=True, blank=True)
     MemberIcon = models.CharField(max_length=500, null=True, blank=True)
+    IsMonitor = models.IntegerField()
 
     class Meta:
         db_table = 'WeChatRoomMessage'
