@@ -117,7 +117,7 @@ class DataReceiveThread(threading.Thread):
             vcWeixinSerialNo = ','.join(msg_data['memberIds'])
             msgContent = msg_data['Content']
             RoomID = msg_data['RoomID']
-            MonitorSend = msg_data.get('MonitorSend', "")
+            # MonitorSend = msg_data.get('MonitorSend', "")
             CreateTime = time.strftime('%Y-%m-%d %H:%M:%S')
             MsgId = ''.join(random.sample(CODE_STR, random.randint(20, 24)))
         except Exception, e:
@@ -156,8 +156,9 @@ class DataReceiveThread(threading.Thread):
             "MsgId": MsgId,
             "CreateTime": CreateTime,
             "RoomID": RoomID,
-            "MemberID": MonitorSend,
-            "UserNickName": UserNickName
+            "MemberID": vcRobotSerialNo,
+            "UserNickName": UserNickName,
+            "IsMonitor": 1
         }
 
         django_log.info('生成发送给java的数据-----------> %s' % robot_msg)
