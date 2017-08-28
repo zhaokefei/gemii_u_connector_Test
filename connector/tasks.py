@@ -1,15 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import StringIO
+import json
 import logging
 import time
 
 import copy
+
+import xlwt
 from celery.task import task
+from django.conf import settings
+from django.core.mail import EmailMessage
 from django.db import transaction
 from django.core import signals
 
-from connector.models import RobotChatRoom, ChatRoomModel, WhileList
+from connector import apis
+from connector.models import RobotChatRoom, ChatRoomModel, WhileList, URobotModel, SendEmailMemberModel
 from connector.serializers import MemberInfoSerializer
 from connector.utils import commont_tool
 from wechat.models import WeChatRoomMemberInfoGemii, WeChatRoomInfoGemii
@@ -135,3 +141,77 @@ def insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice,
         WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommember_data)
     except Exception, e:
         member_log.info('出现重复的数据 %s' % str(e.message))
+
+@task
+def send_email_robot_blocked(robotid, blockedtime):
+    member_log.info('start send message')
+    chatroom_record = ChatRoomModel.objects.filter(vcRobotSerialNo=robotid)
+    robot_record = URobotModel.objects.get(vcSerialNo=robotid)
+
+    f = StringIO.StringIO()
+    file = xlwt.Workbook()
+    write_table = file.add_sheet(u'机器人被封')
+    header = [u'机器人编号', u'机器人名称', u'群编号', u'群名称', u'群主编号', u'群主', u'项目', u'机器人被封时间']
+    for i, value in enumerate(header):
+        write_table.write(0, i, value)
+
+    for i, chatroom in enumerate(chatroom_record, start=1):
+        roomname = chatroom.vcName
+        u_roomid = chatroom.vcChatRoomSerialNo
+        adminid = chatroom.vcWxUserSerialNo
+        serNum = chatroom.serNum
+        robotname = robot_record.vcNickName
+
+        # 分库
+        if serNum == "A":
+            db_gemii_choice = 'gemii'
+        else:
+            db_gemii_choice = 'gemii_b'
+
+        # 获取项目
+        room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid)
+        if room_record.exists():
+            roomid = room_record.first().RoomID
+            owner = room_record.first().owner
+            if not owner:
+                owner = 'wyeth'
+        else:
+            roomid = u''
+            owner = u''
+
+        # 获取群主
+        member_record = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(U_UserID=adminid, RoomID=roomid)
+        if member_record.exists():
+            adminname = member_record.first().NickName
+        else:
+            adminname = ''
+
+        write_table.write(i, 0, robotid)
+        write_table.write(i, 1, robotname)
+        write_table.write(i, 2, roomid)
+        write_table.write(i, 3, roomname)
+        write_table.write(i, 4, adminid)
+        write_table.write(i, 5, adminname)
+        write_table.write(i, 6, owner)
+        write_table.write(i, 7, str(blockedtime))
+
+    file.save(f)
+
+    # 获取发送邮件的用户邮箱
+    email_addresses = []
+    send_members = SendEmailMemberModel.objects.filter(send_type='rb')
+    for mem in send_members:
+        email = mem.first().Email
+        email_addresses.append(email)
+
+    # 整合邮件发送
+    email = EmailMessage(
+        u'机器人被封反馈',
+        u'请拉入新的机器人',
+        settings.EMAIL_FROM,
+        email_addresses
+    )
+    email.attach(u"被封机器人对应的群.xlsx", f.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    email.send()
+    member_log.info('send done')
+

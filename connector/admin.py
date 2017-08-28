@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
     IntoChatRoomMessageModel, IntoChatRoom, DropOutChatRoom, MemberInfo, RobotChatRoom, GemiiRobot, \
-    WhileList, RobotBlockedModel, SendMsgFailModel
+    WhileList, RobotBlockedModel, SendMsgFailModel, SendEmailMemberModel
 
 
 # Register your models here.
@@ -61,6 +61,10 @@ class SendMessageFailAdmin(admin.ModelAdmin):
     list_display = ('vcRelaSerialNo', 'nMsgNum', 'message_receive_time')
     search_fields = ('nMsgNum',)
 
+class SendEmailMemberAdmin(admin.ModelAdmin):
+    list_display = ('NickName', 'Email', 'send_type')
+    search_fields = ('NickName', 'Email')
+
 admin.site.register(ChatMessageModel, ChatMessageModelAdmin)
 admin.site.register(URobotModel, URobotModelAdmin)
 admin.site.register(ChatRoomModel, ChatRoomModelAdmin)
@@ -73,3 +77,4 @@ admin.site.register(GemiiRobot, GemiiRobotAdmin)
 admin.site.register(WhileList, WhileListAdmin)
 admin.site.register(RobotBlockedModel, RobotBlockedAdmin)
 admin.site.register(SendMsgFailModel, SendMessageFailAdmin)
+admin.site.register(SendEmailMemberModel, SendEmailMemberAdmin)

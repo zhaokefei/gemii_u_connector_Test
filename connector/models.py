@@ -185,3 +185,9 @@ class SendMsgFailModel(models.Model):
     class Meta:
         db_table = 'failmessage'
         verbose_name_plural = verbose_name = u'发送失败的消息'
+
+
+class SendEmailMemberModel(models.Model):
+    NickName = models.CharField(max_length=50, verbose_name=u'商家编号')
+    Email = models.EmailField(verbose_name=u'邮箱地址')
+    send_type = models.CharField(max_length=10, verbose_name=u'发送邮件类型', help_text=u'rb表示被封机器人发邮件')

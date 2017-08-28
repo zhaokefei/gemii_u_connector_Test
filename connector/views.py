@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #from __future__ import unicode_literals
-
+import StringIO
 import random
 import string
 import time
@@ -11,6 +11,8 @@ import logging
 import copy
 
 import redis
+import xlwt
+from django.core.mail import EmailMessage
 
 from django.db.models import F
 from django.conf import settings
@@ -36,7 +38,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     DropOutChatRoomSerializer, MemberInfoSerializer, RobotBlockedSerialize
 
 from connector.forms import KickingForm
-from connector.tasks import handle_robotchatroom, handle_member_room
+from connector.tasks import handle_robotchatroom, handle_member_room, send_email_robot_blocked
 from connector.utils import commont_tool
 from connector.utils import me_java_callback
 
@@ -1043,8 +1045,10 @@ class RobotBlockedView(GenericAPIView, mixins.CreateModelMixin):
             serializer = self.get_serializer(data=robot)
             if serializer.is_valid():
                 self.perform_create(serializer)
+            send_email_robot_blocked.delay(robot['vcSerialNo'], robot['dtCreateDate'])
             member_log.info('serializer errors ---> %s' % str(serializer.errors))
         return HttpResponse('SUCCESS')
+
 
     @view_exception_handler
     def post(self, request):
