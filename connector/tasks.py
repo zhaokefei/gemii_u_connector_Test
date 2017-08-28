@@ -207,11 +207,14 @@ def send_email_robot_blocked(robotid, blockedtime):
     # 整合邮件发送
     email = EmailMessage(
         u'机器人被封反馈',
-        u'请拉入新的机器人',
+        settings.EMAIL_BODY,
         settings.EMAIL_FROM,
         email_addresses
     )
-    email.attach(u"被封机器人对应的群.xlsx", f.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    email.send()
+    email.attach(u"被封机器人对应的群.xls", f.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    try:
+        email.send()
+    except Exception, e:
+        member_log.info('email send fail')
     member_log.info('send done')
 
