@@ -201,7 +201,7 @@ def send_email_robot_blocked(robotid, blockedtime):
     email_addresses = []
     send_members = SendEmailMemberModel.objects.filter(send_type='rb')
     for mem in send_members:
-        email = mem.first().Email
+        email = mem.Email
         email_addresses.append(email)
 
     # 整合邮件发送
