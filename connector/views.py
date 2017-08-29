@@ -132,8 +132,9 @@ class KickingSendMsg(object):
             "MsgId": ''.join(random.sample(CODE_STR, random.randint(20, 24))),
             "CreateTime": time.strftime('%Y-%m-%d %H:%M:%S'),
             "RoomID": roomid,
-            "MemberID": "monitor",
-            "UserNickName": monitorname
+            "MemberID": vcRobotSerialNo,
+            "UserNickName": monitorname,
+            "IsMonitor": 1
         }
 
         if sernum == 'A':

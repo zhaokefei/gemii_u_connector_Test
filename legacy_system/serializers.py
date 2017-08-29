@@ -44,6 +44,7 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
     MemberID = serializers.CharField(source='vcFromWxUserSerialNo')
     UserNickName = serializers.SerializerMethodField('get_nickname')
     MemberIcon = serializers.SerializerMethodField('get_mermer_icon')
+    IsMonitor = serializers.SerializerMethodField('get_is_monitor')
     isLegal = serializers.SerializerMethodField('get_is_legal')
 
     _db_gemii_choice = None
@@ -153,7 +154,10 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
         info = self._get_member_info(room_id,u_userid,db_gemii_choice)
         return info.is_legal if info else ""
 
+    def get_is_monitor(self, obj):
+        return 0
+
     class Meta:
         model = ChatMessageModel
         fields = ('Content', 'MsgType', 'AppMsgType', 'UserDisplayName', 'MsgId', 'CreateTime', 'RoomID',
-                  'MemberID', 'UserNickName', 'MemberIcon', 'isLegal')
+                  'MemberID', 'UserNickName', 'MemberIcon', 'isLegal', 'IsMonitor')
