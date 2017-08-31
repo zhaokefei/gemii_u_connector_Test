@@ -11,7 +11,7 @@ from connector.views import ChatMessageListView, URobotView, \
     ChatRoomView, IntoChatRoomMessageCreateView, IntoChatRoomCreateView, \
     DropOutChatRoomCreateView, MemberInfoCreateView, GetUrobotQucode, UnotityCallback, CreateRoomTaskView, \
     ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView, OpenKickingView, ShowKickingView, RebotRoomView, \
-    Qrcode, RobotBlockedView, WhiteMemberCallBackView, SendMessageFailView
+    Qrcode, RobotBlockedView, WhiteMemberCallBackView, SendMessageFailView, UpdateRoomMembers
 from django.views.decorators.csrf import csrf_exempt
 
 router = DefaultRouter()
@@ -52,5 +52,8 @@ urlpatterns += [
     url(r'^whitemember/$', csrf_exempt(WhiteMemberCallBackView.as_view()), name='whitemember'),
     # 消息发送失败接口回调
     url(r'^sendmsgfail/$', csrf_exempt(SendMessageFailView.as_view()), name='sendmsgfail'),
+
+    # 提供给java获取群成员的接口
+    url(r'^updateroommembers/$', csrf_exempt(UpdateRoomMembers.as_view()), name='updateroommembers')
 
 ]

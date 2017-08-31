@@ -734,26 +734,26 @@ class ChatRoomKickingView(View):
     def get(self, request, *args, **kwargs):
         vcChatRoomSerialNo = request.GET['u_roomId']
         vcWxUserSerialNo = request.GET['u_userId']
-        RoomID = request.GET.get('roomId', '')
-        monitorName = request.GET.get('monitorName', '')
+        # RoomID = request.GET.get('roomId', '')
+        # monitorName = request.GET.get('monitorName', '')
         member_log.info('java调用踢人接口, 群 %s 用户 %s' % (str(vcChatRoomSerialNo), str(vcWxUserSerialNo)))
 
-        try:
-            chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=vcChatRoomSerialNo)
-            serNum = str(chatroom_record.serNum)
-        except ChatRoomModel.DoesNotExist:
-            serNum = 'B'
-            chatroom_record = ""
-            member_log.info('未获取到群信息')
-
-        if chatroom_record:
-            # member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
-            member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
-            if RoomID:
-                kick = KickingSendMsg()
-                # TODO: 去掉monitorName字段
-                kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID)
-                time.sleep(2)
+        # try:
+        #     chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=vcChatRoomSerialNo)
+        #     serNum = str(chatroom_record.serNum)
+        # except ChatRoomModel.DoesNotExist:
+        #     serNum = 'B'
+        #     chatroom_record = ""
+        #     member_log.info('未获取到群信息')
+        #
+        # if chatroom_record:
+        #     # member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
+        #     member_log.info('踢人群信息: 班长--> %s, 群编号: %s' % (str(monitorName), str(RoomID)))
+        #     if RoomID:
+        #         kick = KickingSendMsg()
+        #         # TODO: 去掉monitorName字段
+        #         kick.kicking_send_msg(chatroom_record, serNum, vcChatRoomSerialNo, vcWxUserSerialNo, RoomID)
+        #         time.sleep(2)
 
         response = apis.chatroom_kicking(vcRelationSerialNo="",
                                          vcChatRoomSerialNo=vcChatRoomSerialNo,
@@ -1180,3 +1180,12 @@ class SendMessageFailView(View):
         new_record = SendMsgFailModel(vcRelaSerialNo=vcRelaSerialNo, nMsgNum=nMsgNum)
         new_record.save()
         return HttpResponse('SUCCESS')
+
+class UpdateRoomMembers(View):
+    """
+    提供给java更新群成员的接口
+    """
+    def post(self, request):
+        u_roomid = json.loads(request.POST['u_roomid'])
+        response = apis.receive_member_info(vcChatRoomSerialNo=u_roomid)
+        return HttpResponse(response, content_type='application/json')
