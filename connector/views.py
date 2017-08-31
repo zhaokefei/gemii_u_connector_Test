@@ -892,17 +892,17 @@ class CreateRoomCallbackView(View):
                 django_log.info('插入数据至群信息')
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
+            serNum = 'B'
 
-        # finally:
-        #     # 根据不同的库编号回调java不同的接口
-        #     if serNum == 'A':
-        #         response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
-        #         django_log.info('回调A库建群接口')
-        #     else:
-        #         response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
-        #         django_log.info('回调B库建群接口')
+        # 根据不同的库编号回调java不同的接口
+        if serNum == 'A':
+            response = requests.post(settings.CALLBACK_JAVA_WYETH, data={"params": json.dumps(params)})
+            django_log.info('回调A库建群接口')
+        else:
+            response = requests.post(settings.CALLBACK_JAVA_GEMII, data={"params": json.dumps(params)})
+            django_log.info('回调B库建群接口')
 
-        response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
+        # response = requests.post(settings.CALLBACK_JAVA, data={"params": json.dumps(params)})
 
         return HttpResponse('SUCCESS.')
 
