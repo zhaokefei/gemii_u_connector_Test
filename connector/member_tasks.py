@@ -13,7 +13,7 @@ from wechat.models import WeChatRoomInfoGemii
 
 from connector.utils.commont_tool import decode_base64, emoji_to_unicode, time_strf
 
-member_log = logging.getLogger('member')
+member_log = logging.getLogger(str('member'))
 
 
 def _choice_gemii(ab):
