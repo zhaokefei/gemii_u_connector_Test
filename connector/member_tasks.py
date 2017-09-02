@@ -101,6 +101,7 @@ def _sync_room_memberinfo(ab, sn, roomid, items, is_gemii):
     data = {'sn': sn, 'roomid': roomid, 'items': items}
     data = json.dumps(data)
     db_alias = _choice_gemii(ab) if is_gemii else _choice_wyeth(ab)
+    member_log.info('database %s' % db_alias)
     with connections[db_alias].cursor() as cursor:
         cursor.callproc('sync_room_memberinfo', (data,))
 
