@@ -29,7 +29,7 @@ def watch(f):
         import time
         t = time.time()
         r = f(*args, **kwargs)
-        member_log.info(f.__name__, time.time()-t)
+        member_log.info('%s, %s' % (f.__name__, time.time()-t))
         return r
     return _wrap
 
