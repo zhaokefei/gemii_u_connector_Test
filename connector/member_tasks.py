@@ -104,7 +104,6 @@ def _sync_room_memberinfo(ab, sn, roomid, items, is_gemii):
     with connections[db_alias].cursor() as cursor:
         cursor.callproc('sync_room_memberinfo', (data,))
 
-@watch
 @task
 def sync_room_members(obj):
     # patch emoji
