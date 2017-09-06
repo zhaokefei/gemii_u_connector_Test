@@ -62,14 +62,15 @@ class IntoChatRoomMessageModel(models.Model):
     需要借助此表中的｀vcSerialNo｀字段经由批量开群接口开通机器人群功能。
     """
     vcSerialNo = models.CharField(max_length=50, verbose_name=u'拉群编号')
-    vcRobotSerialNo = models.CharField(max_length=50, verbose_name=u'机器人编号')
-    vcName = models.CharField(max_length=50, verbose_name=u'群昵称')
-    vcBase64Name = models.CharField(max_length=100, verbose_name=u'群base64编码后的昵称')
-    vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'拉群用户的微信编号')
-    vcNickName = models.CharField(max_length=100, verbose_name=u'用户昵称')
-    vcBase64NickName = models.CharField(max_length=100, verbose_name=u'用户base64编码后的昵称')
-    vcHeadImgUrl = models.CharField(max_length=1000, verbose_name=u'用户头像')
+    vcRobotSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'机器人编号')
+    vcName = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'群昵称')
+    vcBase64Name = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'群base64编码后的昵称')
+    vcWxUserSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'拉群用户的微信编号')
+    vcNickName = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'用户昵称')
+    vcBase64NickName = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'用户base64编码后的昵称')
+    vcHeadImgUrl = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'用户头像')
     dtCreateDate = models.DateTimeField(verbose_name=u'创建时间')
+    vcChatRoomSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'群编号')
     # 新填一个字段来表示该拉群编号是不是用于激活群成功（2017-7-14之前的无效）
     state = models.CharField(max_length=10, default=1, verbose_name=u'是否已经开群')
 
