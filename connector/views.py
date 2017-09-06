@@ -197,16 +197,18 @@ class ChatRoomView(viewsets.ModelViewSet):
                 room_record.vcApplyCodeSerialNo = data['vcApplyCodeSerialNo']
                 room_record.save()
             except:
-                # 关联A库相关的群编号
-                a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
-                a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
-                if a_gemii_room_record.exists():
-                    a_gemii_room_record.update(U_RoomID=u_roomid)
-                    data['serNum'] = 'A'
-                if a_wyeth_room_record.exists():
-                    a_wyeth_room_record.update(U_RoomID=u_roomid)
-                    if not data.get('serNum'):
+                # 忽略群名为`未命名`的群匹配
+                if data['vcName'] != u'未命名':
+                    # 关联A库相关的群编号
+                    a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
+                    a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
+                    if a_gemii_room_record.exists():
+                        a_gemii_room_record.update(U_RoomID=u_roomid)
                         data['serNum'] = 'A'
+                    if a_wyeth_room_record.exists():
+                        a_wyeth_room_record.update(U_RoomID=u_roomid)
+                        if not data.get('serNum'):
+                            data['serNum'] = 'A'
 
                 serializer = self.get_serializer(data=data)
                 if serializer.is_valid():
