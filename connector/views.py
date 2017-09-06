@@ -1191,6 +1191,6 @@ class UpdateRoomMembers(View):
     提供给java更新群成员的接口
     """
     def post(self, request):
-        u_roomid = json.loads(request.POST['u_roomid'])
+        u_roomid = request.POST['u_roomid']
         response = apis.receive_member_info(vcChatRoomSerialNo=u_roomid)
         return HttpResponse(response, content_type='application/json')

@@ -9,6 +9,7 @@ import copy
 
 import xlwt
 from celery.task import task
+from datetime import datetime
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.db import transaction
@@ -211,10 +212,22 @@ def send_email_robot_blocked(robotid, blockedtime):
         settings.EMAIL_FROM,
         email_addresses
     )
-    email.attach(u"被封机器人对应的群.xls", f.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    try:
-        email.send()
-    except Exception, e:
-        member_log.info('email send fail')
-    member_log.info('send done')
+    email.attach(u"{}_robot_blocked.xls".format(datetime.now().strftime("%Y-%m-%d")), f.getvalue(), 'application/octet-stream')
 
+    return send_email(email)
+
+def send_email(email, release=3, **kwargs):
+    try:
+        member_log.info('开始发送邮件')
+        response = email.send()
+        member_log.info('send email response %s' % str(response))
+    except Exception, e:
+        member_log.info('error %s' % str(e.message))
+        if release > 0:
+            member_log.info('重试发送邮件，剩余发送次数%s' % str(release))
+            return send_email(email, release-1, **kwargs)
+        else:
+            member_log.info('发送邮件失败')
+            return False
+
+    return response
