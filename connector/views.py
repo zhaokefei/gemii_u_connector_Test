@@ -39,6 +39,7 @@ from connector.serializers import ChatMessageSerializer, URobotSerializer, \
 
 from connector.forms import KickingForm
 from connector.tasks import handle_robotchatroom, handle_member_room, send_email_robot_blocked
+from connector.member_tasks import sync_room_members
 from connector.utils import commont_tool
 from connector.utils import me_java_callback
 
@@ -184,6 +185,7 @@ class ChatRoomView(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         django_log.info('open_room_success_callback')
         request_data = json.loads(request.data['strContext'], strict=False)['Data']
+        sql_log.info('chatroom callback %s' % str(request_data))
         for data in request_data:
             u_roomid = data['vcChatRoomSerialNo']
             try:
@@ -195,16 +197,19 @@ class ChatRoomView(viewsets.ModelViewSet):
                 room_record.vcApplyCodeSerialNo = data['vcApplyCodeSerialNo']
                 room_record.save()
             except:
-                # 关联A库相关的群编号
-                a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
-                a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
-                if a_gemii_room_record.exists():
-                    a_gemii_room_record.update(U_RoomID=u_roomid)
-                    data['serNum'] = 'A'
-                if a_wyeth_room_record.exists():
-                    a_wyeth_room_record.update(U_RoomID=u_roomid)
-                    if not data.get('serNum'):
+                # 忽略群名为`未命名`的群匹配
+                if data['vcName'] != u'未命名':
+                    # 关联A库相关的群编号
+                    a_gemii_room_record = WeChatRoomInfoGemii.objects.using('gemii').filter(RoomName=data['vcName'])
+                    a_wyeth_room_record = WeChatRoomInfo.objects.using('wyeth').filter(RoomName=data['vcName'])
+                    if a_gemii_room_record.exists():
+                        a_gemii_room_record.update(U_RoomID=u_roomid)
                         data['serNum'] = 'A'
+                        member_log.info('自动关联A库U_RoomID')
+                    if a_wyeth_room_record.exists():
+                        a_wyeth_room_record.update(U_RoomID=u_roomid)
+                        if not data.get('serNum'):
+                            data['serNum'] = 'A'
 
                 serializer = self.get_serializer(data=data)
                 if serializer.is_valid():
@@ -233,6 +238,7 @@ class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
     def create(self, request, *args, **kwargs):
         django_log.info('robot_into_collback')
         request_data = json.loads(request.data['strContext'], strict=False)['Data']
+        sql_log.info('robot intochatroom callback %s' % str(request_data))
         for data in request_data:
             state = '0'
             try:
@@ -530,26 +536,28 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
     queryset = MemberInfo.objects.all()
     serializer_class = MemberInfoSerializer
 
-    def batch_create(self, request, members=None, chatroom_id=None):
-        if not members or not chatroom_id:
-            django_log.info(u'没有群（%s）成员：' % (chatroom_id))
-            return HttpResponse('SUCCESS')
-        members = members[0]['ChatRoomUserData']
-
-        try:
-            chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
-        except ChatRoomModel.DoesNotExist:
-            chatroom = ''
-
-        handle_member_room.delay(members, chatroom_id, chatroom)
-        return HttpResponse('SUCCESS')
+    # def batch_create(self, request, members=None, chatroom_id=None):
+    #     if not members or not chatroom_id:
+    #         django_log.info(u'没有群（%s）成员：' % (chatroom_id))
+    #         return HttpResponse('SUCCESS')
+    #     members = members[0]['ChatRoomUserData']
+    #
+    #     try:
+    #         chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+    #     except ChatRoomModel.DoesNotExist:
+    #         chatroom = ''
+    #
+    #     handle_member_room.delay(members, chatroom_id, chatroom)
+    #     return HttpResponse('SUCCESS')
 
     @view_exception_handler
     def post(self, request, *args, **kwargs):
         data = json.loads(request.data['strContext'], strict=False)
-        members = data['Data']
-        chatroom_id = data['vcChatRoomSerialNo']
-        return self.batch_create(request, members=members, chatroom_id=chatroom_id)
+        sync_room_members.delay(data)
+        return HttpResponse('SUCCESS')
+        # members = data['Data']
+        # chatroom_id = data['vcChatRoomSerialNo']
+        # return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
 
 class GetUrobotQucode(View):
@@ -1189,6 +1197,6 @@ class UpdateRoomMembers(View):
     提供给java更新群成员的接口
     """
     def post(self, request):
-        u_roomid = json.loads(request.POST['u_roomid'])
+        u_roomid = request.POST['u_roomid']
         response = apis.receive_member_info(vcChatRoomSerialNo=u_roomid)
         return HttpResponse(response, content_type='application/json')

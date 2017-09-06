@@ -35,12 +35,12 @@ class Command(BaseCommand):
     # @transaction.atomic()
     def handle(self, *args, **options):
 
-        # 获取机器人列表
+        # # 获取机器人列表
         robot_list_data = self.get_robot_list()
 
         if not robot_list_data:
             return
-
+        #
         qun_total = 0
         insert_num = 0
 
@@ -51,7 +51,7 @@ class Command(BaseCommand):
 
             # 获取机器人所对应的群列表
             try:
-                room_list = json.loads(apis.get_chatroom_list(str(robot_num)))
+                room_list = json.loads(apis.get_chatroom_list(str(robot_num)), strict=False)
             except Exception, e:
                 # 错误的机器人编号，未匹配到对应的群
                 sql_log.info(u'错误编号：%s, 对应的机器人 %s' % (e.message, robot_num))

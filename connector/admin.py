@@ -23,8 +23,8 @@ class ChatRoomModelAdmin(admin.ModelAdmin):
     search_fields = ('vcChatRoomSerialNo', 'vcName', 'vcRobotSerialNo')
 
 class IntoChatRoomMessageModelAdmin(admin.ModelAdmin):
-    list_display = ('vcSerialNo', 'vcRobotSerialNo', 'vcName', 'dtCreateDate')
-    search_fields = ('vcSerialNo', 'vcRobotSerialNo', 'vcName',)
+    list_display = ('vcSerialNo', 'vcRobotSerialNo', 'vcName', 'vcChatRoomSerialNo', 'dtCreateDate')
+    search_fields = ('vcSerialNo', 'vcRobotSerialNo', 'vcChatRoomSerialNo', 'vcName',)
 
     
 class IntoChatRoomAdmin(admin.ModelAdmin):
