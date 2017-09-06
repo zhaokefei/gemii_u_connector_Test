@@ -205,6 +205,7 @@ class ChatRoomView(viewsets.ModelViewSet):
                     if a_gemii_room_record.exists():
                         a_gemii_room_record.update(U_RoomID=u_roomid)
                         data['serNum'] = 'A'
+                        member_log.info('自动关联A库U_RoomID')
                     if a_wyeth_room_record.exists():
                         a_wyeth_room_record.update(U_RoomID=u_roomid)
                         if not data.get('serNum'):
