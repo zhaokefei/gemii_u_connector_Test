@@ -28,12 +28,14 @@ def md5_args(arg_src):
     m.update(arg_src)
     return m.hexdigest()
 
+# 把 data格式数据 转换成 url 并且加密
 def gen_data(strContext):
     strSign = md5_args(json.dumps(strContext)+Sec)
     data = {'strContext': json.dumps(strContext), 'strSign': strSign}
     data = urllib.urlencode(data)
     return data
 
+# 机器人 在群内发送消息
 def send_chat_message(vcChatRoomSerialNo='',
                  vcRobotSerialNo='',
                  nIsHit='1',
@@ -62,6 +64,7 @@ def send_chat_message(vcChatRoomSerialNo='',
                 'nVoiceTime': str(nVoiceTime)}
             ]
         }
+    # 传入data格式数据
     data = gen_data(params)
     u_request = URequest()
     u_request.api = api
@@ -69,6 +72,7 @@ def send_chat_message(vcChatRoomSerialNo='',
     response = u_request.request()
     return response
 
+# 更新 群成员 获取群成员
 def receive_member_info(vcChatRoomSerialNo=''):
     api = 'Merchant.asmx/ChatRoomUserInfo'
     params = {
@@ -82,6 +86,7 @@ def receive_member_info(vcChatRoomSerialNo=''):
     response = u_request.request()
     return response
 
+# 批量 开群
 def open_chatroom(vcSerialNoList=''):
     api = 'Merchant.asmx/PullRobotInChatRoomOpenChatRoom'
     params = {
@@ -95,6 +100,7 @@ def open_chatroom(vcSerialNoList=''):
     response = u_request.request()
     return response
 
+# 开启 群内 实时消息
 def open_get_message(vcChatRoomSerialNo=''):
     api = 'Merchant.asmx/ChatRoomOpenGetMessages'
     params = {
@@ -108,7 +114,7 @@ def open_get_message(vcChatRoomSerialNo=''):
     response = u_request.request()
     return response
 
-
+# 查看 机器人 开通的群
 def get_chatroom_list(vcRobotSerialNo=''):
     api = 'Merchant.asmx/ChatRoomList'
     params = {
@@ -122,7 +128,7 @@ def get_chatroom_list(vcRobotSerialNo=''):
     response = u_request.request()
     return response
 
-
+# 获取 机器人列表
 def get_robot_list():
     api = 'Merchant.asmx/RobotList'
     params = {
@@ -385,6 +391,7 @@ def recive_msg_open(room_id):
     response = u_request.request()
     return response
 
+# 注销 开通的群
 def room_over(vcChatRoomSerialNo=''):
     api = 'Merchant.asmx/ChatRoomOver'
     params = {
@@ -399,6 +406,7 @@ def room_over(vcChatRoomSerialNo=''):
     response = u_request.request()
     return response
 
+# 转让 群主
 def chatroomadminchange(vcChatRoomSerialNo='', vcWxUserSerialNo=''):
     api = 'Merchant.asmx/ChatRoomAdminChange'
     params = {
@@ -437,7 +445,7 @@ def chatroominfomodify(vcChatRoomSerialNo='', vcName='', vcNotice='', nInviteSwi
     response = u_request.request()
     return response
 
-
+# 查询 群信息。
 def checkchatroomstatus(vcChatRoomSerialNo=''):
     api = 'Merchant.asmx/ChatRoomStatus'
     params = {
@@ -450,3 +458,5 @@ def checkchatroomstatus(vcChatRoomSerialNo=''):
     u_request.data = data
     response = u_request.request()
     return response
+
+

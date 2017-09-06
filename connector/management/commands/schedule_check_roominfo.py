@@ -9,6 +9,8 @@ import logging
 from connector import apis
 from django.core.management.base import BaseCommand
 from connector.models import ChatRoomModel
+from wechat.models import WeChatRoomInfoGemii
+from wyeth.models import WeChatRoomInfo
 
 sql_log = logging.getLogger("sql")
 
@@ -68,13 +70,20 @@ class Command(BaseCommand):
                 vcBase64Name = room['vcBase64Name']
                 vcRobotSerialNo = robot_num
 
+                # 根据 群编号 先查询数据里是否 有群信息
                 record = ChatRoomModel.objects.filter(vcChatRoomSerialNo=vcChatRoomSerialNo)
+                # 找到A库对应的 群
+                # record2wechat = WeChatRoomInfoGemii.objects.using('gemii').filter(U_RoomID=vcChatRoomSerialNo)
+                # record2wyeth = WeChatRoomInfo.objects.using('wyeth').filter(U_RoomID=vcChatRoomSerialNo)
+
+                # 如果 这个群 不存在 添加
                 if not record.exists():
                     insert_num += 1
                     sql_log.info(u'插入数据 群编号:%s, 机器人编号:%s, 群名: %s' % (vcChatRoomSerialNo, vcRobotSerialNo, vcName))
                     new_record = ChatRoomModel(vcChatRoomSerialNo=vcChatRoomSerialNo, vcWxUserSerialNo=vcWxUserSerialNo,
                                                vcName=vcName, vcBase64Name=vcBase64Name, vcRobotSerialNo=vcRobotSerialNo)
 
+                    # 修改数据库后 跟新保存
                     new_record.save()
                 else:
                     count = record.count()
@@ -83,8 +92,17 @@ class Command(BaseCommand):
                                       vcRobotSerialNo=robot_num, vcWxUserSerialNo=vcWxUserSerialNo)
 
                 try:
+                    # 跟新 群成员
                     res_data = apis.receive_member_info(vcChatRoomSerialNo)
                     sql_log.info(res_data)
+
+                    # 跟新 A库的 群昵称 (如果存在  再更新)
+                    # if record2wechat.exists():
+                    #     record2wechat.update(RoomName=vcName)
+                    # if record2wyeth.exists():
+                    #     record2wyeth.update(RoomName=vcName)
+                    # sql_log.info(u'两个A库的群昵称更新完成')
+
                 except Exception, e:
                     sql_log.info(u'获取群成员失败 %s' % vcChatRoomSerialNo)
                     sql_log.info(u'错误日志 %s' % e.message)

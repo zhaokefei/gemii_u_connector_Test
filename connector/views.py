@@ -1044,8 +1044,11 @@ class RobotBlockedView(GenericAPIView, mixins.CreateModelMixin):
                 robot.pop('TableName')
             member_log.info('block robot ---> %s' % str(robot))
             serializer = self.get_serializer(data=robot)
+            # 检查这个对象 是否创建了 实例对象
             if serializer.is_valid():
                 self.perform_create(serializer)
+
+            # 发送邮件 机器人被封 发送 机器人编号
             send_email_robot_blocked.delay(robot['vcSerialNo'], robot['dtCreateDate'])
             member_log.info('serializer errors ---> %s' % str(serializer.errors))
         return HttpResponse('SUCCESS')
@@ -1128,7 +1131,7 @@ class Qrcode(View):
 
         return HttpResponse(json.dumps(rsp), content_type="application/json")
 
-
+# 设置 白名单
 class WhiteMemberCallBackView(View):
     def post(self, request):
         u_roomid = request.POST.get('uRoomId', '')

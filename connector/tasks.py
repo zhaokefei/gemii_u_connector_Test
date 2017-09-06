@@ -142,13 +142,16 @@ def insert_room_member_data(member, roominfo_raw, userinfo_raw, db_gemii_choice,
     except Exception, e:
         member_log.info('出现重复的数据 %s' % str(e.message))
 
+# 机器人 被封 发送邮件。
 @task
 def send_email_robot_blocked(robotid, blockedtime):
     member_log.info('start send message')
     chatroom_record = ChatRoomModel.objects.filter(vcRobotSerialNo=robotid)
     robot_record = URobotModel.objects.get(vcSerialNo=robotid)
 
+    # 创建 stringIO 准备写入数据
     f = StringIO.StringIO()
+    # 创建一个 excel
     file = xlwt.Workbook()
     write_table = file.add_sheet(u'机器人被封')
     header = [u'机器人编号', u'机器人名称', u'群编号', u'群名称', u'群主编号', u'群主', u'项目', u'机器人被封时间']
@@ -211,10 +214,11 @@ def send_email_robot_blocked(robotid, blockedtime):
         settings.EMAIL_FROM,
         email_addresses
     )
+    # 添加 附件
     email.attach(u"被封机器人对应的群.xls", f.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     try:
         email.send()
     except Exception, e:
-        member_log.info('email send fail')
+        member_log.info('email send fail --- > %s',e)
     member_log.info('send done')
 
