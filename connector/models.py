@@ -85,10 +85,10 @@ class IntoChatRoom(models.Model):
     vcChatRoomSerialNo = models.CharField(max_length=50, verbose_name=u'群编号')
     vcWxUserSerialNo = models.CharField(max_length=50, verbose_name=u'用户编号')
     vcFatherWxUserSerialNo = models.CharField(max_length=50, null=True, blank=True, verbose_name=u'用户父级编号（邀请人编号）')
-    vcNickName = models.CharField(max_length=100, verbose_name=u'用户昵称')
-    vcBase64NickName = models.CharField(max_length=100, verbose_name=u'Base64编码后的用户昵称')
-    vcHeadImages = models.CharField(max_length=1000, verbose_name=u'用户头像')
-    nJoinChatRoomType = models.CharField(max_length=5, verbose_name=u'入群方式')
+    vcNickName = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'用户昵称')
+    vcBase64NickName = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'Base64编码后的用户昵称')
+    vcHeadImages = models.CharField(max_length=1000, null=True, blank=True, verbose_name=u'用户头像')
+    nJoinChatRoomType = models.CharField(max_length=5, null=True, blank=True, verbose_name=u'入群方式')
     message_create_time = models.DateTimeField(default=timezone.now, verbose_name=u'消息获取时间')
     
     class Meta:
