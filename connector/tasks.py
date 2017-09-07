@@ -215,25 +215,17 @@ def send_email_robot_blocked(robotid, blockedtime):
         settings.EMAIL_FROM,
         email_addresses
     )
-<<<<<<< HEAD
-    # 添加 附件
-    email.attach(u"被封机器人对应的群.xls", f.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-=======
+
     email.attach(u"{}_robot_blocked.xls".format(datetime.now().strftime("%Y-%m-%d")), f.getvalue(), 'application/octet-stream')
 
     return send_email(email)
 
 def send_email(email, release=3, **kwargs):
->>>>>>> ebd53cf432d96f0ecd334d709ccfad984fa38dc9
     try:
         member_log.info('开始发送邮件')
         response = email.send()
         member_log.info('send email response %s' % str(response))
     except Exception, e:
-<<<<<<< HEAD
-        member_log.info('email send fail --- > %s',e)
-    member_log.info('send done')
-=======
         member_log.info('error %s' % str(e.message))
         if release > 0:
             member_log.info('重试发送邮件，剩余发送次数%s' % str(release))
@@ -241,6 +233,5 @@ def send_email(email, release=3, **kwargs):
         else:
             member_log.info('发送邮件失败')
             return False
->>>>>>> ebd53cf432d96f0ecd334d709ccfad984fa38dc9
 
     return response
