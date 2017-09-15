@@ -130,7 +130,7 @@ class DataReceiveThread(threading.Thread):
             link['vcTitle'] = card_link[0]
             link['vcDesc'] = card_link[1]
             link['vcHref'] = card_link[2]
-            link['msgContent'] = card_link[2]
+            link['msgContent'] = card_link[3]
 
         from models import ChatRoomModel
         record = ChatRoomModel.objects.filter(vcChatRoomSerialNo=vcChatRoomSerialNo)
