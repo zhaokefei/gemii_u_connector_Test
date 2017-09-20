@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #from __future__ import unicode_literals
 import StringIO
+import os
 import random
 import string
 import time
@@ -11,8 +12,6 @@ import logging
 import copy
 
 import redis
-import xlwt
-from django.core.mail import EmailMessage
 
 from django.db.models import F
 from django.conf import settings
@@ -52,6 +51,7 @@ member_log = logging.getLogger('member')
 sql_log = logging.getLogger('sql')
 
 CODE_STR = string.ascii_letters + string.digits
+
 
 
 class Tick(object):
@@ -312,6 +312,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
             nickname = commont_tool.emoji_to_unicode(origin_name)
 
+            # 如果 没有 serNum 就设置成 B
             try:
                 chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
                 serNum = str(chatroom_record.serNum)
@@ -559,7 +560,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
         # chatroom_id = data['vcChatRoomSerialNo']
         # return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
-
+# 获取 由创 机器人二维码
 class GetUrobotQucode(View):
     def get_urobot_qrcode(self, request):
         response = {'code': 0, 'msg': '成功'}
@@ -1199,4 +1200,45 @@ class UpdateRoomMembers(View):
     def post(self, request):
         u_roomid = request.POST['u_roomid']
         response = apis.receive_member_info(vcChatRoomSerialNo=u_roomid)
+        return HttpResponse(response, content_type='application/json')
+
+class RoomOver(View):
+    """
+    提供给java 注销群 接口
+    """
+    def post(self, request):
+        u_roomid = request.POST['u_roomid']
+        response = apis.room_over(vcChatRoomSerialNo=u_roomid)
+        return HttpResponse(response, content_type='application/json')
+
+class CheckChatRoomStatus(View):
+    """
+    提供给java 查询群 状态
+    """
+    def post(self, request):
+        u_roomid = request.POST['u_roomid']
+        response = apis.checkchatroomstatus(vcChatRoomSerialNo=u_roomid)
+        return HttpResponse(response, content_type='application/json')
+
+
+class ChatRoomInfoModify(View):
+    """
+    提供给java 修改群名
+    """
+    def post(self, request):
+        u_roomid = request.POST['u_roomid']
+        roomName = request.POST['roomName']
+        notice  = request.POST['notice']
+        response = apis.chatroominfomodify(vcChatRoomSerialNo=u_roomid, vcName=roomName, vcNotice=notice)
+        return HttpResponse(response, content_type='application/json')
+
+
+class ChatRoomAdminChange(View):
+    """
+    提供给java 转让 群主
+    """
+    def post(self, request):
+        u_roomid = request.POST['u_roomid']
+        userid = request.POST['userid']
+        response = apis.chatroomadminchange(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=userid)
         return HttpResponse(response, content_type='application/json')

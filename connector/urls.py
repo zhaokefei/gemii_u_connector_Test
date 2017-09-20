@@ -11,8 +11,10 @@ from connector.views import ChatMessageListView, URobotView, \
     ChatRoomView, IntoChatRoomMessageCreateView, IntoChatRoomCreateView, \
     DropOutChatRoomCreateView, MemberInfoCreateView, GetUrobotQucode, UnotityCallback, CreateRoomTaskView, \
     ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView, OpenKickingView, ShowKickingView, RebotRoomView, \
-    Qrcode, RobotBlockedView, WhiteMemberCallBackView, SendMessageFailView, UpdateRoomMembers
+    Qrcode, RobotBlockedView, WhiteMemberCallBackView, SendMessageFailView, UpdateRoomMembers, RoomOver, \
+    CheckChatRoomStatus, ChatRoomInfoModify, ChatRoomAdminChange
 from django.views.decorators.csrf import csrf_exempt
+from connector import views
 
 router = DefaultRouter()
 router.register(r'chatmessages', ChatMessageListView, base_name='chatmessages')
@@ -53,7 +55,15 @@ urlpatterns += [
     # 消息发送失败接口回调
     url(r'^sendmsgfail/$', csrf_exempt(SendMessageFailView.as_view()), name='sendmsgfail'),
 
-    # 提供给java获取群成员的接口
-    url(r'^updateroommembers/$', csrf_exempt(UpdateRoomMembers.as_view()), name='updateroommembers')
+    # 提供给java - 获取群成员的接口
+    url(r'^updateroommembers/$', csrf_exempt(UpdateRoomMembers.as_view()), name='updateroommembers'),
+    # 提供给java - 注销群
+    url(r'^roomover/$', csrf_exempt(RoomOver.as_view()), name='roomover'),
+    # 提供给java - 查询群状态
+    url(r'^checkchatroomstatus/$', csrf_exempt(CheckChatRoomStatus.as_view()), name='checkchatroomstatus'),
+    # 提供给java - 修改群名
+    url(r'^chatroominfomodify/$', csrf_exempt(ChatRoomInfoModify.as_view()), name='chatroominfomodify'),
+    # 提供给java - 转让 群主
+    url(r'^chatroomadminchange/$', csrf_exempt(ChatRoomAdminChange.as_view()), name='chatroomadminchange'),
 
 ]
