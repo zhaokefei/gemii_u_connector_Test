@@ -1228,8 +1228,7 @@ class ChatRoomInfoModify(View):
     def post(self, request):
         u_roomid = request.POST['u_roomid']
         roomName = request.POST['roomName']
-        notice  = request.POST['notice']
-        response = apis.chatroominfomodify(vcChatRoomSerialNo=u_roomid, vcName=roomName, vcNotice=notice)
+        response = apis.chatroominfomodify(vcChatRoomSerialNo=u_roomid, vcName=roomName)
         return HttpResponse(response, content_type='application/json')
 
 
