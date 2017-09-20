@@ -168,17 +168,17 @@ def send_email_robot_blocked(robotid, blockedtime):
 
         # 分库
         if serNum == "A":
+            db_wyeth_choice = 'wyeth'
             db_gemii_choice = 'gemii'
         else:
+            db_wyeth_choice = 'wyeth_b'
             db_gemii_choice = 'gemii_b'
 
         # 获取项目
-        room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid)
+        room_record = WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid)
         if room_record.exists():
             roomid = room_record.first().RoomID
             owner = room_record.first().owner
-            if not owner:
-                owner = 'wyeth'
         else:
             roomid = u''
             owner = u''
@@ -188,7 +188,7 @@ def send_email_robot_blocked(robotid, blockedtime):
         if member_record.exists():
             adminname = member_record.first().NickName
         else:
-            adminname = ''
+            adminname = u''
 
         write_table.write(i, 0, robotid)
         write_table.write(i, 1, robotname)
