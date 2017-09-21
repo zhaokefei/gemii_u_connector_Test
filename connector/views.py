@@ -157,6 +157,7 @@ class UMessageView(GenericAPIView, mixins.CreateModelMixin):
     def batch_create(self, request, datas=None, *args, **kwargs):
         for data in datas:
             try:
+                # 获取 群成员
                 rsp = apis.receive_member_info(str(data['vcChatRoomSerialNo']))
                 django_log.info('room-id:%s' % data['vcChatRoomSerialNo'])
                 django_log.info('rsp:%s' % rsp)
@@ -177,6 +178,7 @@ class URobotView(viewsets.ModelViewSet):
     queryset = URobotModel.objects.all()
     serializer_class = URobotSerializer
 
+# 开群成功 通知回调
 class ChatRoomView(viewsets.ModelViewSet):
     queryset = ChatRoomModel.objects.all()
     serializer_class = ChatRoomSerializer
@@ -218,6 +220,7 @@ class ChatRoomView(viewsets.ModelViewSet):
             django_log.info('rece_msg_rsp %s' % str(rsp))
         return HttpResponse('SUCCESS')
 
+# 群内实时消息回调
 class ChatMessageListView(viewsets.ModelViewSet):
     queryset = ChatMessageModel.objects.all()
     serializer_class = ChatMessageSerializer
@@ -232,6 +235,7 @@ class ChatMessageListView(viewsets.ModelViewSet):
 
         return HttpResponse('SUCCESS')
 
+# 机器人入群回调
 class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
     queryset = IntoChatRoomMessageModel.objects.all()
     serializer_class = IntoChatRoomMessageSerializer
@@ -776,7 +780,7 @@ class ChatRoomKickingView(View):
             member_log.info('由创踢人返回码错误 %s' % str(response))
         return HttpResponse(response, content_type="application/json")
 
-
+# 创建开群任务 - 反馈 激活开群任务 - 根据task_id开群
 class CreateRoomTaskView(View):
     """接受建群任务进行建群处理"""
     def create_room_task(self, request, *args, **kwargs):
@@ -798,6 +802,7 @@ class CreateRoomTaskView(View):
         django_log.info('由创返回建群任务 %s' % str(create_task_response))
         # 解析建群请求
         create_task_data = json.loads(create_task_response)
+        # code 成功值 是 0
         if create_task_data['code'] != 0:
             return create_task_data
 

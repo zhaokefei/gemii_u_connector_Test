@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from connector import views
 
 router = DefaultRouter()
+#群内实时消息回调
 router.register(r'chatmessages', ChatMessageListView, base_name='chatmessages')
 router.register(r'urobot', URobotView, base_name='urobot')
 router.register(r'chatrooms', ChatRoomView, base_name='chatrooms')

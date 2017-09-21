@@ -39,10 +39,14 @@ class Command(BaseCommand):
             if int(response['nResult']) == -1:
                 sql_log.info(response)
             else:
+                #删除全部数据
+                URobotModel.objects.all().delete()
+                # 获取机器人信息
                 datas = response['Data'][0]['RobotInfo']
 
                 finish_count = 0
                 fault_count = 0
+
 
                 for data in datas:
                     vcSerialNo = data['vcSerialNo']
@@ -54,19 +58,22 @@ class Command(BaseCommand):
                     nStatus = data['nStatus']
 
                     try:
-                        robot = URobotModel.objects.get(vcSerialNo=vcSerialNo)
-                    except URobotModel.DoesNotExist:
                         robot = URobotModel()
                         robot.vcSerialNo = vcSerialNo
-                    robot.nChatRoomCount = nChatRoomCount
-                    robot.vcNickName = vcNickName
-                    robot.vcBase64NickName = vcBase64NickName
-                    robot.vcHeadImages = vcHeadImages
-                    robot.vcCodeImages = vcCodeImages
-                    robot.nStatus = nStatus
+                        robot.nChatRoomCount = nChatRoomCount
+                        robot.vcNickName = vcNickName
+                        robot.vcBase64NickName = vcBase64NickName
+                        robot.vcHeadImages = vcHeadImages
+                        robot.vcCodeImages = vcCodeImages
+                        robot.nStatus = nStatus
 
-                    robot.save()
-                    finish_count += 1
+                        robot.save()
+                        finish_count += 1
+
+                    except Exception, e:
+                        sql_log.info('inster_URobot_error:%s' % e.message)
+                        fault_count += 1
+
 
                 sql_log.info('finish_count data %s ' % finish_count)
                 sql_log.info('fault_count data %s ' % fault_count)
