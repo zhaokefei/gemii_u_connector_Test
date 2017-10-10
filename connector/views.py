@@ -649,6 +649,9 @@ class UnotityCallback(View):
             user_id = request.POST['user_id']
             verify_code = request.POST['verify_code']
             user_nickname = request.POST['user_nickname']
+            member_log.info('openid %s' % open_id)
+            member_log.info('roomid %s' % room_id)
+            member_log.info('user_id %s' % user_id)
         except Exception:
             member_log.info('扫码入群出错')
             response = {'code': 1, 'msg': '表单参数错误'}
@@ -683,6 +686,7 @@ class UnotityCallback(View):
         userinfo_records = UserInfo.objects.using(db_wyeth_choice).filter(Openid=open_id, MatchGroup=room_record.RoomID)
 
         if userinfo_records.exists():
+            member_log.info('get_userinfo_table %s' % user_id)
             userinfo_records.update(U_UserID=user_id, UserName=user_nickname)
             member_log.info('update userinfo')
             userinfo_record = userinfo_records.first()
@@ -921,6 +925,7 @@ class CreateRoomCallbackView(View):
                                          vcName=vcName, serNum=serNum, vcBase64Name=vcName)
                 chatroom.save()
                 django_log.info('插入数据至群信息')
+                django_log.info(room_info)
         except RoomTask.DoesNotExist:
             django_log.info('未找到任务编号')
             serNum = 'B'
