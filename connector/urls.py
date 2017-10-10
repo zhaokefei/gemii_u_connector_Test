@@ -36,6 +36,7 @@ urlpatterns = [
 
 urlpatterns += [
     url(r'^qrcode/$', csrf_exempt(GetUrobotQucode.as_view()), name='get_urobot_qrcode'),
+    # 扫码入群回调
     url(r'^unotity/callback/$', csrf_exempt(UnotityCallback.as_view()), name='unotity_callback'),
     # 建群任务
     url(r'^createroomtask/$', csrf_exempt(CreateRoomTaskView.as_view()), name="createroomtask"),
@@ -44,6 +45,7 @@ urlpatterns += [
     url(r'^createroomdone/$', csrf_exempt(CreateRoomCallbackView.as_view()), name='createroomdone'),
     # 修改群名(java回调)
     url(r'^modifyroomname/$', csrf_exempt(ModifyRoomNameView.as_view()), name='modifyroomname'),
+    # 私拉踢人 - 护群
     url(r'^kickingtask/$', csrf_exempt(OpenKickingView.as_view()), name='kickingtask'),
     url(r'^showtask/$', csrf_exempt(ShowKickingView.as_view()), name='showtask'),
     # 机器人是否在群中回调

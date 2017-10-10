@@ -178,7 +178,7 @@ class URobotView(viewsets.ModelViewSet):
     queryset = URobotModel.objects.all()
     serializer_class = URobotSerializer
 
-# 开群成功 通知回调
+# 开群成功 通知回调 - chatroom_info存储数据 -  开启消息接收
 class ChatRoomView(viewsets.ModelViewSet):
     queryset = ChatRoomModel.objects.all()
     serializer_class = ChatRoomSerializer
@@ -216,6 +216,7 @@ class ChatRoomView(viewsets.ModelViewSet):
                 serializer = self.get_serializer(data=data)
                 if serializer.is_valid():
                     self.perform_create(serializer)
+            # 开启消息接收
             rsp = commont_tool.rece_msg(u_roomid)
             django_log.info('rece_msg_rsp %s' % str(rsp))
         return HttpResponse('SUCCESS')
@@ -235,7 +236,7 @@ class ChatMessageListView(viewsets.ModelViewSet):
 
         return HttpResponse('SUCCESS')
 
-# 机器人入群回调
+# 机器人入群回调 - 批量开群
 class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
     queryset = IntoChatRoomMessageModel.objects.all()
     serializer_class = IntoChatRoomMessageSerializer
@@ -264,13 +265,14 @@ class IntoChatRoomMessageCreateView(GenericAPIView, mixins.CreateModelMixin):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+# 成员入群 - 写入into_chatroom - 写入member_info - 如果私拉 踢了
 class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
     """
     成员入群信息
     """
     queryset = IntoChatRoom.objects.all()
     serializer_class = IntoChatRoomSerializer
-
+    # 对 member_info数据 的修改
     def batch_create(self, request, datas=None, *args, **kwargs):
         member_log.info('成员入群回调')
         for data in datas:
@@ -284,6 +286,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 member_defaults['vcSerialNo'] = member_defaults.pop('vcWxUserSerialNo')
                 member_defaults['nMsgCount'] = 0
                 member_defaults['dtCreateDate'] = datetime.datetime.now()
+                # 对 原来数据的 跟新或创建，返回值：数据，是否成功
                 memberinfo, is_create = MemberInfo.objects.update_or_create(vcSerialNo=member_defaults['vcSerialNo'],
                                                                             defaults=member_defaults)
                 try:
@@ -291,10 +294,11 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 except ChatRoomModel.DoesNotExist:
                     chatroom = ''
 
+                # 查找 群和群成员 联系然后 添加
                 if chatroom and not chatroom.member.filter(vcSerialNo=member_defaults['vcSerialNo']).exists():
                     chatroom.member.add(memberinfo)
         self.handle_member_room(datas)
-
+    # 传入 成员 信息
     def handle_member_room(self, members):
         """
         参数 说明
@@ -305,7 +309,6 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             vcBase64NickName Base64编码后的用户昵称
             vcHeadImages 用户头像
             nJoinChatRoomType 入群方式 10扫码 11拉入 12未知
-
         :param members:
         :return:
         """
@@ -316,6 +319,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             origin_name = commont_tool.decode_base64(member['vcBase64NickName']).decode('utf-8')
             nickname = commont_tool.emoji_to_unicode(origin_name)
 
+            # 根据群的serNum 选择 用户信息 存到 哪个数据库
             # 如果 没有 serNum 就设置成 B
             try:
                 chatroom_record = ChatRoomModel.objects.get(vcChatRoomSerialNo=u_roomid)
@@ -334,6 +338,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 db_wyeth_choice = 'wyeth_b'
                 member_log.info('选择B库')
 
+            # 先获取 群信息
             try:
                 room_record = WeChatRoomInfoGemii.objects.using(db_gemii_choice).get(U_RoomID=u_roomid)
             except WeChatRoomInfoGemii.DoesNotExist:
@@ -344,6 +349,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 str(member['vcWxUserSerialNo']), str(member['vcChatRoomSerialNo'])))
                 continue
             else:
+                # 再 获取用户信息
                 user_record = UserInfo.objects.filter(U_UserID=u_userid, MatchGroup=room_record.RoomID).order_by('-id')
                 if user_record.exists():
                     user_record = user_record.first()
@@ -361,6 +367,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 room_member = WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid)
                 room_member_wyeth = WeChatRoomMemberInfo.objects.using(db_wyeth_choice).filter(RoomID=room_record.RoomID, U_UserID=u_userid)
 
+                # 更新 成员信息 数据
                 is_exist = False
                 if room_member.exists():
                     room_member.update(NickName=nickname, DisplayName=nickname)
@@ -388,9 +395,11 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                 gemii_data['MemberID'] = u_userid
                 gemii_data['enter_group_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+                # 跟新 WeChatRoomMemberInfo 的数据
                 WeChatRoomMemberInfoGemii.objects.using(db_gemii_choice).create(**gemii_data)
                 WeChatRoomMemberInfo.objects.using(db_wyeth_choice).create(**roommerber_data)
                 member_log.info('成功插入成员数据--u_userid(%s)入的群WeChatRoomInfo[%s]' % (str(u_userid), str(u_roomid)))
+
                 WeChatRoomInfoGemii.objects.using(db_gemii_choice).filter(U_RoomID=u_roomid).update(
                     currentCount=F('currentCount') + 1)
                 WeChatRoomInfo.objects.using(db_wyeth_choice).filter(U_RoomID=u_roomid).update(
@@ -403,6 +412,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                     member_log.info('no vcFatherWxUserSerialNo')
                     continue
                 member_log.info('vcFatherWxUserSerialNo %s' % str(vcFatherWxUserSerialNo))
+                # 查询景栗设备
                 fatherrobot = GemiiRobot.objects.filter(vcRobotSerialNo=vcFatherWxUserSerialNo)
                 if fatherrobot.exists():
                     vcName = fatherrobot.first().vcName
@@ -423,9 +433,11 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
                         roomid = room_record.RoomID
                         if chatroom_record:
                             kick = KickingSendMsg()
+                            # 机器人 先发话
                             kick.kicking_send_msg(chatroom_record, serNum, u_roomid, u_userid, roomid)
                             time.sleep(2)
 
+                        # 群主 群内 踢人
                         response = apis.chatroom_kicking(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=u_userid)
                         data = json.loads(response)
                         if str(data['nResult']) == "1":
@@ -450,7 +462,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             self.batch_create(request, datas=datas, *args, **kwargs)
         return HttpResponse('SUCCESS')
 
-
+# 成员退群 - 获取群信息 - 更新群&成员关系表 - 退群 回调java
 class DropOutChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
     """
     成员退群信息
@@ -564,7 +576,7 @@ class MemberInfoCreateView(GenericAPIView, mixins.CreateModelMixin, mixins.Updat
         # chatroom_id = data['vcChatRoomSerialNo']
         # return self.batch_create(request, members=members, chatroom_id=chatroom_id)
 
-# 获取 由创 机器人二维码
+# 获取 由创 机器人二维码 - 用户扫码失败
 class GetUrobotQucode(View):
     def get_urobot_qrcode(self, request):
         response = {'code': 0, 'msg': '成功'}
@@ -610,7 +622,7 @@ class GetUrobotQucode(View):
         response = self.get_urobot_qrcode(request)
         return HttpResponse(json.dumps(response), content_type="application/json")
 
-
+# 扫码入群回调 -
 class UnotityCallback(View):
     def unotity_callback(self, request):
         """
@@ -740,7 +752,7 @@ class UnotityCallback(View):
         return HttpResponse(json.dumps(response), content_type="application/json")
 
 # write 2017/6/27 by kefei
-
+# 群内 踢人处理 - java调用踢人接口
 class ChatRoomKickingView(View):
     """踢人处理"""
     @view_exception_handler
@@ -852,7 +864,7 @@ class CreateRoomTaskView(View):
         return HttpResponse(json.dumps(response, ensure_ascii=False),
                             content_type="application/json")
 
-
+# 根据任务ID获取群信息 然后写入chatroom_info 并反馈java信息
 class CreateRoomCallbackView(View):
     """建群信息回调并返回信息给java"""
     @view_exception_handler
@@ -863,6 +875,7 @@ class CreateRoomCallbackView(View):
             msg = {'code': 1, 'msg': "请传递完整的参数"}
             return HttpResponse(json.dumps(msg, ensure_ascii=False),
                                 content_type="application/json")
+        # 通过任务ID获取微信群列表
         get_chatrooms = apis.group_chatroom_id(task_id)
 
         room_data = json.loads(get_chatrooms)['data']
@@ -873,11 +886,15 @@ class CreateRoomCallbackView(View):
             chat_room_id = room['chat_room_id']
             chat_room_name = room['chat_room_name']
             create_time = room['create_time']
+            qr_code = room['qr_code']
+            exist_creator = room['exist_creator']
 
             room_info_list.append({
                 'uRoomId': chat_room_id,
                 'roomName': chat_room_name,
-                'createTime': create_time
+                'createTime': create_time,
+                'qr_code': qr_code,
+                'exist_creator': exist_creator
             })
 
         # 调用java接口发送群信息
@@ -920,7 +937,7 @@ class CreateRoomCallbackView(View):
 
         return HttpResponse('SUCCESS.')
 
-
+# 建群成功后 修改群名回调 写入chatroom_info
 class ModifyRoomNameView(View):
     """由java调用修改群名称"""
     def modify_room_name(self, request):
@@ -929,13 +946,16 @@ class ModifyRoomNameView(View):
         chat_room_id = request.POST.get('chat_room_id', False)
         chat_room_name = request.POST.get('chat_room_name', False)
         create_time = request.POST.get('create_time', False)
+        qr_code = request.POST.get('qr_code', False)
+        exist_creator = request.POST.get('exist_creator', False)
 
-        if not (task_id and chat_room_id and chat_room_name and create_time):
+
+        if not (task_id and chat_room_id and chat_room_name and create_time and qr_code and exist_creator):
             msg = {'code': 1, 'msg': "请传递完整的参数"}
             return msg
         # 调由创接口修改群名
         response = apis.modify_chatroom_info(
-            task_id, chat_room_id, chat_room_name, create_time)
+            task_id, chat_room_id, chat_room_name, create_time, qr_code, exist_creator)
 
         django_log.info('修改群名回调 %s' % str(response))
 
@@ -962,6 +982,7 @@ class ModifyRoomNameView(View):
         response  = self.modify_room_name(request)
         return HttpResponse(json.dumps(response), content_type="application/json")
 
+# 私拉踢人 - 护群功能 - 界面开关显示
 class OpenKickingView(View):
     def get(self, request):
         kicking_form = KickingForm()
@@ -1030,6 +1051,7 @@ class ShowKickingView(View):
         # return render(request, 'show_task.html', {'ayd': ayd_task, 'msj': msj_task, 'wyeth': wyeth_task})
         return render(request, 'show_task.html', {'ayd': ayd_task, 'msj': msj_task})
 
+# 机器人在哪些群
 class RebotRoomView(View):
     def batch_create(self,request):
         data = json.loads(request.POST['strContext'], strict=False)
@@ -1043,12 +1065,14 @@ class RebotRoomView(View):
     def post(self, request):
         return self.batch_create(request)
 
+# 机器人 被封回调
 class RobotBlockedView(GenericAPIView, mixins.CreateModelMixin):
     queryset = RobotBlockedModel.objects.all()
     serializer_class = RobotBlockedSerialize
 
     def batch_create(self, request):
         data = json.loads(request.POST['strContext'], strict=False)
+
         robotinfo = data['Data'][0]['RobotInfo']
         member_log.info('block robotinfo %s' % str(data))
         for robot in robotinfo:
@@ -1072,6 +1096,7 @@ class RobotBlockedView(GenericAPIView, mixins.CreateModelMixin):
     def post(self, request):
         return self.batch_create(request)
 
+# 机器人 二维码
 class Qrcode(View):
     """
         {
@@ -1184,6 +1209,7 @@ class WhiteMemberCallBackView(View):
 
         return HttpResponse(json.dumps(msg), content_type='application/json')
 
+# 发送消息失败 回调
 class SendMessageFailView(View):
     """
     发送消息失败回调接口

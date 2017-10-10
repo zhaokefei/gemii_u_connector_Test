@@ -53,6 +53,7 @@ def rece_msg(u_roomid):
     rsp = apis.recive_msg_open(u_roomid)
     return rsp
 
+# 对 字符串进行 解密
 def decode_base64(chars):
     if isinstance(chars, str):
         chars = chars.decode('utf-8').encode('utf8')
@@ -60,6 +61,7 @@ def decode_base64(chars):
         chars = chars.encode('utf8')
     return base64.urlsafe_b64decode(chars)
 
+# 对 字符串进行 加密
 def encode_base64(chars):
     if isinstance(chars, str):
         chars = chars.decode('utf-8').encode('utf8')

@@ -13,13 +13,13 @@ from django.conf import settings
 import logging
 
 
+
 No = settings.NO
 Sec = settings.SEC
 # # 正式账户
 # No = '201705051010001'
 # Sec = '201705051010001'
 # # 测试账户
-#
 # No = '201706271010013'
 # Sec = '201706271010013'
 
@@ -86,7 +86,7 @@ def receive_member_info(vcChatRoomSerialNo=''):
     response = u_request.request()
     return response
 
-# 批量 开群
+# 批量 开群 手动激活 就调用这个。
 def open_chatroom(vcSerialNoList=''):
     api = 'Merchant.asmx/PullRobotInChatRoomOpenChatRoom'
     params = {
@@ -141,7 +141,7 @@ def get_robot_list():
     response = u_request.request()
     return response
 
-
+# 群内@人发送消息
 def chatroom_sendmsg(vcRelaSerialNo, vcChatRoomSerialNo, vcRobotSerialNo,
                      vcWeixinSerialNo, nIsHit=1, Data=None):
     """
@@ -183,7 +183,7 @@ def chatroom_sendmsg(vcRelaSerialNo, vcChatRoomSerialNo, vcRobotSerialNo,
     response = u_request.request()
     return response
 
-
+# 群主群内踢人
 def chatroom_kicking(vcRelationSerialNo="",
                      vcChatRoomSerialNo="",
                      vcWxUserSerialNo="",
@@ -215,7 +215,7 @@ def chatroom_kicking(vcRelationSerialNo="",
     response = u_request.request()
     return response
 
-
+# 创建开群任务
 def create_chatroom_task(theme, introduce, limit_member_count, bot_code):
     """
     @brief 创建开群任务
@@ -239,7 +239,7 @@ def create_chatroom_task(theme, introduce, limit_member_count, bot_code):
     response = u_request.request()
     return response
 
-
+# 激活开群任务
 def active_chatroom_task(task_id, theme, theme_image,
                          pay_count, creator, create_time):
     """
@@ -286,9 +286,9 @@ def create_chatroom(task_id):
     response = u_request.request()
     return response
 
-
+# 修改群信息 - 返回 java 接口
 def modify_chatroom_info(task_id, chat_room_id,
-                         chat_room_name, create_time, notice=""):
+                         chat_room_name, create_time, qr_code, exist_creator, notice=""):
     """
     @brief 修改群信息（修改群名）
     :param task_id:
@@ -296,6 +296,8 @@ def modify_chatroom_info(task_id, chat_room_id,
     :param chat_room_name:
     :param create_time:
     :param notice:
+    :param qr_code:
+    :param exist_creator:
     :return:
     """
     api = "v1/group/chat-room"
@@ -304,7 +306,9 @@ def modify_chatroom_info(task_id, chat_room_id,
         "chat_room_id": chat_room_id,
         "chat_room_name": chat_room_name,
         "create_time": create_time,
-        "notice": notice
+        "notice": notice,
+        "qr_code": qr_code,
+        "exist_creator": exist_creator
     }
     u_request = URequestVer2(method=requests.put)
     u_request.api = api
@@ -312,7 +316,7 @@ def modify_chatroom_info(task_id, chat_room_id,
     response = u_request.request()
     return response
 
-
+# 通过任务ID获取微信群列表
 def group_chatroom_id(task_id):
     """
     @brief 通过任务ID获取微信群列表
@@ -326,7 +330,7 @@ def group_chatroom_id(task_id):
     response = u_request.request()
     return response
 
-
+# 获取机器人二维码
 def get_robot_qrcode(task_id, label_id, open_id,
                      group_id, group_name, chat_room_id):
     """
@@ -421,6 +425,7 @@ def chatroomadminchange(vcChatRoomSerialNo='', vcWxUserSerialNo=''):
     response = u_request.request()
     return response
 
+# 修改群信息
 def chatroominfomodify(vcChatRoomSerialNo='', vcName='', vcNotice='', nInviteSwitch='1'):
     """
     修改群信息
@@ -458,5 +463,4 @@ def checkchatroomstatus(vcChatRoomSerialNo=''):
     u_request.data = data
     response = u_request.request()
     return response
-
 
