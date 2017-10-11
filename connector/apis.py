@@ -23,6 +23,7 @@ Sec = settings.SEC
 # No = '201706271010013'
 # Sec = '201706271010013'
 
+
 def md5_args(arg_src):
     m = hashlib.md5()
     m.update(arg_src)
@@ -288,7 +289,7 @@ def create_chatroom(task_id):
 
 # 修改群信息 - 返回 java 接口
 def modify_chatroom_info(task_id, chat_room_id,
-                         chat_room_name, create_time, qr_code, exist_creator, notice=""):
+                         chat_room_name, create_time, qr_code='', exist_creator='', notice=""):
     """
     @brief 修改群信息（修改群名）
     :param task_id:
