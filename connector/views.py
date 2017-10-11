@@ -951,16 +951,14 @@ class ModifyRoomNameView(View):
         chat_room_id = request.POST.get('chat_room_id', False)
         chat_room_name = request.POST.get('chat_room_name', False)
         create_time = request.POST.get('create_time', False)
-        qr_code = request.POST.get('qr_code', False)
-        exist_creator = request.POST.get('exist_creator', False)
 
 
-        if not (task_id and chat_room_id and chat_room_name and create_time and qr_code and exist_creator):
+        if not (task_id and chat_room_id and chat_room_name and create_time):
             msg = {'code': 1, 'msg': "请传递完整的参数"}
             return msg
         # 调由创接口修改群名
         response = apis.modify_chatroom_info(
-            task_id, chat_room_id, chat_room_name, create_time, qr_code, exist_creator)
+            task_id, chat_room_id, chat_room_name, create_time)
 
         django_log.info('修改群名回调 %s' % str(response))
 
