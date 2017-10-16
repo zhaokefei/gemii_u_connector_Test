@@ -611,11 +611,10 @@ class GetUrobotQucode(View):
             response['data'] = data
             django_log.info('获取二维码成功：%s' % request.POST)
             django_log.info('u_response：%s' % u_response)
-            commont_tool.get_robotQucode_fail(request.POST, u_response)
         else:
             django_log.info('获取二维码失败：%s' % request.POST)
             django_log.info('u_response：%s' % u_response)
-            # commont_tool.get_robotQucode_fail(request.POST, u_response)
+            commont_tool.get_robotQucode_fail(request.POST, u_response)
             response = {'code': 1, 'msg': '获取二维码失败'}
         return response
 
