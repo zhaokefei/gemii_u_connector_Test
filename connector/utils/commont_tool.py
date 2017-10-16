@@ -78,3 +78,15 @@ def emoji_to_unicode(nickname):
         message_log.info('translation name error: %s' % str(e.message))
         result = nickname
     return result
+
+
+def get_robotQucode_fail(post, u_response):
+    message = u"task_id:%s; group_name:%s; u_response:%s" \
+              % (post[u'task_id'], post[u'group_name'], u_response)
+
+    response = apis.send_chat_message(vcChatRoomSerialNo='xxxxxxx',
+                                      vcRobotSerialNo='xxxxxxx',
+                                      vcWeixinSerialNo='',
+                                      msgContent=message)
+
+    message_log.info('robotQucode_fail message response %s' % str(response))

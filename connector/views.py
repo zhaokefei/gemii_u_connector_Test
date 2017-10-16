@@ -611,9 +611,11 @@ class GetUrobotQucode(View):
             response['data'] = data
             django_log.info('获取二维码成功：%s' % request.POST)
             django_log.info('u_response：%s' % u_response)
+            commont_tool.get_robotQucode_fail(request.POST, u_response)
         else:
             django_log.info('获取二维码失败：%s' % request.POST)
             django_log.info('u_response：%s' % u_response)
+            # commont_tool.get_robotQucode_fail(request.POST, u_response)
             response = {'code': 1, 'msg': '获取二维码失败'}
         return response
 
@@ -830,8 +832,9 @@ class CreateRoomTaskView(View):
         create_time = task_data['create_time']
         u_bot_code = task_data['bot_code']
         # 激活建群任务
-        apis.active_chatroom_task(task_id, theme, theme_image,
+        activate_task_response = apis.active_chatroom_task(task_id, theme, theme_image,
                                   count, creator, create_time)
+        django_log.info('由创返回的激活任务结果: %s' % str(activate_task_response))
 
         # 创建群
         createroom_response = apis.create_chatroom(task_id)
@@ -988,8 +991,33 @@ class ModifyRoomNameView(View):
 # 私拉踢人 - 护群功能 - 界面开关显示
 class OpenKickingView(View):
     def get(self, request):
+        tickCfg = Tick()
+
+        ayd = tickCfg.get_ayd()
+        msj = tickCfg.get_msj()
+
+        ayd_temp = ''
+        msj_temp = ''
+
+        if ayd == True:
+            ayd_temp = 'open'
+        elif ayd == False:
+            ayd_temp = 'close'
+
+        if msj == True:
+            msj_temp = 'open'
+        elif msj == False:
+            msj_temp = 'close'
+
         kicking_form = KickingForm()
-        return render(request, 'kicking_task.html', {'kicking_form': kicking_form})
+
+        kicking_form.fields['ayd_task'].initial = ayd_temp
+        kicking_form.fields['msj_task'].initial = msj_temp
+
+        return render(request, 'kicking_task.html', locals())
+
+        # kicking_form = KickingForm()
+        # return render(request, 'kicking_task.html', {'kicking_form': kicking_form})
 
     def post(self, request):
         kicking_form = KickingForm(request.POST)
