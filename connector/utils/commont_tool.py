@@ -84,8 +84,8 @@ def get_robotQucode_fail(post, u_response):
     message = u"task_id:%s; group_name:%s; u_response:%s" \
               % (post[u'task_id'], post[u'group_name'], u_response)
 
-    response = apis.send_chat_message(vcChatRoomSerialNo='xxxxxxx',
-                                      vcRobotSerialNo='xxxxxxx',
+    response = apis.send_chat_message(vcChatRoomSerialNo='4FCB1F0E5C1136ADBFCE013648023C9E',
+                                      vcRobotSerialNo='FDBFB2B1EE75CA333AADE7D934F8468D',
                                       vcWeixinSerialNo='',
                                       msgContent=message)
 
