@@ -81,11 +81,10 @@ def emoji_to_unicode(nickname):
 
 
 def get_robotQucode_fail(post, u_response):
-    message = u"群名称：%s \n task_id:%s \n 错误信息为:%s" \
+    message = u"群二维码未获得,请查看：\n群名称:%s \ntask_id:%s \n错误信息为:%s" \
               % (post[u'group_name'], post[u'task_id'],  u_response[u'msg'])
-
-    response = apis.send_chat_message(vcChatRoomSerialNo='4FCB1F0E5C1136ADBFCE013648023C9E',
-                                      vcRobotSerialNo='FDBFB2B1EE75CA333AADE7D934F8468D',
+    response = apis.send_chat_message(vcChatRoomSerialNo='5E95FD246CF899AA2AFF029022F75217',
+                                      vcRobotSerialNo='C6C612A0F755EA449275DD9C3E057F54',
                                       vcWeixinSerialNo='',
                                       msgContent=message)
 
