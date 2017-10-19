@@ -83,22 +83,21 @@ def emoji_to_unicode(nickname):
 # 获取 小助手二维码失败 发送消息
 def get_robotQucode_fail(post, u_response):
     # 如果没有 群名称 在数据库中查询
-
-    if not str(post['group_name']):
+    if not post['group_name']:
         try:
             conn_chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=post['chat_room_id'])
             roomname = conn_chatroom.vcName
         except:
             roomname = post['chat_room_id']
+    else:
+        roomname = post['group_name']
 
     message = u"小助手二维码未获得,请查看：\n群名称:%s \ntask_id:%s \n错误信息为:%s" \
               % (roomname, post['task_id'],  u_response['msg'])
 
 
-    # response = apis.send_chat_message(vcChatRoomSerialNo='5E95FD246CF899AA2AFF029022F75217',
-    #                                   vcRobotSerialNo='C6C612A0F755EA449275DD9C3E057F54',
-    response = apis.send_chat_message(vcChatRoomSerialNo='4FCB1F0E5C1136ADBFCE013648023C9E',
-                                      vcRobotSerialNo='FDBFB2B1EE75CA333AADE7D934F8468D',
+    response = apis.send_chat_message(vcChatRoomSerialNo='5E95FD246CF899AA2AFF029022F75217',
+                                      vcRobotSerialNo='C6C612A0F755EA449275DD9C3E057F54',
                                       vcWeixinSerialNo='',
                                       msgContent=message)
 
