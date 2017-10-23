@@ -279,25 +279,43 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
                 self.perform_create(serializer)
-
-                chatroom_id = data['vcChatRoomSerialNo']
-                member_defaults = copy.copy(data)
-                member_defaults.pop('vcChatRoomSerialNo')
-                member_defaults['vcSerialNo'] = member_defaults.pop('vcWxUserSerialNo')
-                member_defaults['nMsgCount'] = 0
-                member_defaults['dtCreateDate'] = datetime.datetime.now()
-                # 对 原来数据的 跟新或创建，返回值：数据，是否成功
-                memberinfo, is_create = MemberInfo.objects.update_or_create(vcSerialNo=member_defaults['vcSerialNo'],
-                                                                            defaults=member_defaults)
+                # 同步群成员信息
                 try:
-                    chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
-                except ChatRoomModel.DoesNotExist:
-                    chatroom = ''
+                    self.sync_member_info(data)
+                except Exception, e:
+                    member_log.info('sync member info error room_id: %s, user_id: %s' \
+                                    % (data['vcChatRoomSerialNo'], data['vcWxUserSerialNo']))
+                    pass
 
-                # 查找 群和群成员 联系然后 添加
-                if chatroom and not chatroom.member.filter(vcSerialNo=member_defaults['vcSerialNo']).exists():
-                    chatroom.member.add(memberinfo)
         self.handle_member_room(datas)
+
+    def sync_member_info(self, data):
+        """
+        同步群成员信息表
+        :param data:
+        :return:
+        """
+        chatroom_id = data['vcChatRoomSerialNo']
+        member_defaults = copy.copy(data)
+        member_defaults.pop('vcChatRoomSerialNo')
+        # 2017-10-23添加去除 vcWxId
+        member_defaults.pop('vcWxId')
+
+        member_defaults['vcSerialNo'] = member_defaults.pop('vcWxUserSerialNo')
+        member_defaults['nMsgCount'] = 0
+        member_defaults['dtCreateDate'] = datetime.datetime.now()
+        # 对 原来数据的 跟新或创建，返回值：数据，是否成功
+        memberinfo, is_create = MemberInfo.objects.update_or_create(vcSerialNo=member_defaults['vcSerialNo'],
+                                                                    defaults=member_defaults)
+        try:
+            chatroom = ChatRoomModel.objects.get(vcChatRoomSerialNo=chatroom_id)
+        except ChatRoomModel.DoesNotExist:
+            chatroom = ''
+
+        # 查找 群和群成员 联系然后 添加
+        if chatroom and not chatroom.member.filter(vcSerialNo=member_defaults['vcSerialNo']).exists():
+            chatroom.member.add(memberinfo)
+
     # 传入 成员 信息
     def handle_member_room(self, members):
         """
@@ -459,6 +477,7 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
     def post(self, request, *args, **kwargs):
         datas = json.loads(request.data['strContext'], strict=False)['Data']
         if datas:
+            sql_log.info('member into room data %s' % datas)
             self.batch_create(request, datas=datas, *args, **kwargs)
         return HttpResponse('SUCCESS')
 
