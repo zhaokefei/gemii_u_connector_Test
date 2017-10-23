@@ -299,7 +299,8 @@ class IntoChatRoomCreateView(GenericAPIView, mixins.CreateModelMixin):
         member_defaults = copy.copy(data)
         member_defaults.pop('vcChatRoomSerialNo')
         # 2017-10-23添加去除 vcWxId
-        member_defaults.pop('vcWxId')
+        if 'vcWxId' in member_defaults:
+            member_defaults.pop('vcWxId')
 
         member_defaults['vcSerialNo'] = member_defaults.pop('vcWxUserSerialNo')
         member_defaults['nMsgCount'] = 0
