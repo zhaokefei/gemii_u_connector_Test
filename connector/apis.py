@@ -16,12 +16,6 @@ import logging
 
 No = settings.NO
 Sec = settings.SEC
-# # 正式账户
-# No = '201705051010001'
-# Sec = '201705051010001'
-# # 测试账户
-# No = '201706271010013'
-# Sec = '201706271010013'
 
 
 def md5_args(arg_src):
@@ -354,6 +348,25 @@ def get_robot_qrcode(task_id, label_id, open_id,
         "chat_room_id": chat_room_id,
         "code": "code",
         "instance_id": '123456'
+    }
+    u_request = URequestVer2(method=requests.post)
+    u_request.api = api
+    u_request.data = json.dumps(params)
+    response = u_request.request()
+    return response
+
+
+# 转移群主
+def change_chatroom_admin(task_id, chat_room_id, admin_wxid):
+    # pass
+    api = "v1/group/admin-transfer"
+    params = {
+        "task_id": task_id,
+        "chat_room_id": md5_args(chat_room_id),
+        "admin_wxid": md5_args(admin_wxid),
+        # "admin_exist": True,
+        # "transfer_status": '5',
+
     }
     u_request = URequestVer2(method=requests.post)
     u_request.api = api
