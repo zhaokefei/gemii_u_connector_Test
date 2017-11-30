@@ -357,20 +357,20 @@ def get_robot_qrcode(task_id, label_id, open_id,
 
 
 # 转移群主
-def change_chatroom_admin(task_id, chat_room_id, admin_wxid):
-    # pass
+def change_chatroom_admin(task_id='', chat_room_id='', admin_wxid=''):
     api = "v1/group/admin-transfer"
+    data = []
     params = {
         "task_id": task_id,
-        "chat_room_id": md5_args(chat_room_id),
-        "admin_wxid": md5_args(admin_wxid),
+        "chat_room_id": chat_room_id,
+        "admin_wxid": admin_wxid
         # "admin_exist": True,
-        # "transfer_status": '5',
-
+        # "transfer_status": 5
     }
     u_request = URequestVer2(method=requests.post)
     u_request.api = api
-    u_request.data = json.dumps(params)
+    data.append(params)
+    u_request.data = json.dumps(data)
     response = u_request.request()
     return response
 
