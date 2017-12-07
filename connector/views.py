@@ -24,6 +24,7 @@ from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView
 
+from connector.AIRobot import AIRobot
 from decorate import view_exception_handler
 from connector import apis
 from connector.models import ChatMessageModel, URobotModel, ChatRoomModel, \
@@ -34,7 +35,7 @@ from wechat.models import WeChatRoomInfoGemii, WeChatRoomMemberInfoGemii, WeChat
 from wyeth.models import WeChatRoomMemberInfo, UserInfo, UserStatus, WeChatRoomInfo
 from connector.serializers import ChatMessageSerializer, URobotSerializer, \
     ChatRoomSerializer, IntoChatRoomMessageSerializer, IntoChatRoomSerializer, \
-    DropOutChatRoomSerializer, MemberInfoSerializer, RobotBlockedSerialize
+    DropOutChatRoomSerializer, MemberInfoSerializer, RobotBlockedSerialize, TransferMasterSerializer
 
 from connector.forms import KickingForm
 from connector.tasks import handle_robotchatroom, handle_member_room, send_email_robot_blocked
@@ -102,23 +103,6 @@ class KickingSendMsg(object):
         content = settings.KICKINGCONTENT
         apis.send_chat_message(vcRobotSerialNo=vcRobotSerialNo, vcChatRoomSerialNo=u_roomid,
                                vcWeixinSerialNo=u_userid, msgContent=content)
-        # if monitorname is None:
-        #     if sernum == "A":
-        #         try:
-        #             monitorroom = MonitorRoom.objects.using('gemii').get(RoomID=roomid)
-        #             monitorid = monitorroom.MonitorID
-        #             monitor = Monitor.objects.using('gemii').get(id=monitorid)
-        #             monitorname = monitor.UserName
-        #         except MonitorRoom.DoesNotExist:
-        #             monitorname = ""
-        #     else:
-        #         try:
-        #             monitorroom = MonitorRoom.objects.using('gemii_b').get(RoomID=roomid)
-        #             monitorid = monitorroom.MonitorID
-        #             monitor = Monitor.objects.using('gemii_b').get(id=monitorid)
-        #             monitorname = monitor.UserName
-        #         except MonitorRoom.DoesNotExist:
-        #             monitorname = ""
         try:
             robot_info = URobotModel.objects.get(vcSerialNo=vcRobotSerialNo)
             monitorname = robot_info.vcNickName
@@ -1274,6 +1258,43 @@ class SendMessageFailView(View):
         new_record.save()
         return HttpResponse('SUCCESS')
 
+
+class TransferMasterCallBackView(GenericAPIView):
+    serializer_class = TransferMasterSerializer
+
+    @view_exception_handler
+    def post(self, request, *args, **kwargs):
+        member_log.info(request.data)
+        self.transfer_master_serialize(request.data)
+        return HttpResponse('SUCCESS')
+
+    def transfer_master_serialize(self, data):
+        serializer = TransferMasterSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
+        # 参数值
+        code = data.get('result_code')
+        desc = data.get('description', '')
+        u_roomid = data.get('chat_room_id')
+        u_userid = data.get('admin_wxid')
+        task_id = data.get('task_id')
+        try:
+            room_name = ChatRoomModel.objects.get(vcChatRoomSerialNo=data['chat_room_id'])
+        except Exception:
+            room_name = ''
+
+        # 机器人发送消息
+        ai = AIRobot()
+        ai.transfer_master_callback(task_id=task_id,
+                                    u_roomid=u_roomid,
+                                    room_name=room_name,
+                                    u_userid=u_userid,
+                                    code=code,
+                                    desc=desc)
+        # 发送消息
+        ai.send_message()
+
+
 class UpdateRoomMembers(View):
     """
     提供给java更新群成员的接口
@@ -1315,10 +1336,28 @@ class ChatRoomInfoModify(View):
 
 class ChatRoomAdminChange(View):
     """
-    提供给java 转让 群主
+    小U方提供给java 转让 群主
     """
     def post(self, request):
         u_roomid = request.POST['u_roomid']
         userid = request.POST['userid']
         response = apis.chatroomadminchange(vcChatRoomSerialNo=u_roomid, vcWxUserSerialNo=userid)
         return HttpResponse(response, content_type='application/json')
+
+
+class TransferMasterApiView(View):
+    """
+    建群方提供转让群主接口
+    """
+    def post(self, request):
+        task_id = request.POST['task_id']
+        u_roomid = request.POST['u_roomid']
+        u_userid = request.POST['u_userid']
+        member_log.info('call transfer master '
+                        'task_id: [ %s ] '
+                        'u_roomid: [ %s ] '
+                        'u_userid: [ %s ]' % (task_id, u_roomid, u_userid))
+        res = apis.change_chatroom_admin(task_id=task_id,
+                                         chat_room_id=u_roomid,
+                                         admin_wxid=u_userid)
+        return HttpResponse(res, content_type='application/json')

@@ -102,3 +102,16 @@ class RobotBlockedSerialize(serializers.ModelSerializer):
     class Meta:
         model = RobotBlockedModel
         fields = '__all__'
+
+
+class TransferMasterSerializer(serializers.Serializer):
+    """
+    转移群主回调
+    """
+    task_id = serializers.IntegerField(label=u'建群task_id')
+    chat_room_id = serializers.CharField(label=u'群ID')
+    admin_wxid = serializers.CharField(label=u'群主ID')
+    admin_exist = serializers.BooleanField(label=u'群主微信是否存在')
+    transfer_status = serializers.IntegerField(label=u'转移状态')
+    result_code = serializers.CharField(label=u'结果码')
+    description = serializers.CharField(allow_blank=True, label=u'结果描述')

@@ -12,7 +12,7 @@ from connector.views import ChatMessageListView, URobotView, \
     DropOutChatRoomCreateView, MemberInfoCreateView, GetUrobotQucode, UnotityCallback, CreateRoomTaskView, \
     ChatRoomKickingView, CreateRoomCallbackView, ModifyRoomNameView, OpenKickingView, ShowKickingView, RebotRoomView, \
     Qrcode, RobotBlockedView, WhiteMemberCallBackView, SendMessageFailView, UpdateRoomMembers, RoomOver, \
-    CheckChatRoomStatus, ChatRoomInfoModify, ChatRoomAdminChange
+    CheckChatRoomStatus, ChatRoomInfoModify, ChatRoomAdminChange, TransferMasterCallBackView, TransferMasterApiView
 from django.views.decorators.csrf import csrf_exempt
 from connector import views
 
@@ -68,5 +68,8 @@ urlpatterns += [
     url(r'^chatroominfomodify/$', csrf_exempt(ChatRoomInfoModify.as_view()), name='chatroominfomodify'),
     # 提供给java - 转让 群主
     url(r'^chatroomadminchange/$', csrf_exempt(ChatRoomAdminChange.as_view()), name='chatroomadminchange'),
-
+    # 提供给java - 转让 群主(建群方)
+    url(r'^transferadminuser/$', csrf_exempt(TransferMasterApiView.as_view()), name='transferadminuser'),
+    # 建群方转让群主接口回调地址
+    url(r'^transfermaster/callback/$', csrf_exempt(TransferMasterCallBackView.as_view()), name='transfermaster'),
 ]
