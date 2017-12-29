@@ -77,10 +77,8 @@ class LegacyChatRoomMessageSerializer(serializers.ModelSerializer):
 
     def get_content(self, obj):
         if str(obj.nMsgType) == '2005':
-            django_log.info('链接消息')
             return '#$#'.join([obj.vcShareTitle, obj.vcShareDesc, obj.vcShareUrl])
         if msg_type_map.get(str(obj.nMsgType), None) is None:
-            django_log.info("未识别的信息，类型为 %s" % obj.nMsgType)
             return "未识别的信息"
         return obj.vcContent
 
