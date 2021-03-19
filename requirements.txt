@@ -12,7 +12,7 @@ Django==1.11.2
 django-celery==3.2.1
 django-crontab==0.7.1
 django-redis==4.8.0
-djangorestframework==3.6.3
+djangorestframework==3.11.2
 e4u==0.2rc1
 flower==0.9.2
 futures==3.1.1
